@@ -7,7 +7,7 @@
 // Build-Kennung zur Cache-Diagnose: taucht oben rechts in der App auf.
 // Wenn du nach einem Update immer noch eine ALTE Nummer siehst, wurde die
 // neue Version noch nicht geladen (Cache-Problem) statt eines echten Bugs.
-const BUILD_ID = "build-14";
+const BUILD_ID = "build-15";
 
 /* ---------------------------------------------------------------------
    0) GLOBALER FEHLER-FÄNGER (Diagnose)
@@ -80,6 +80,8 @@ let state = {
   equipped: { neck: null, eyes: null, head: null, ear: null }, // aktuell getragene Kleidung je Slot
   carePoints: 0, // Basis für Level & Alter
   isDead: false,
+  isTorn: false, // Naht aufgerissen -> muss genäht werden
+  isSick: false, // krank -> braucht Medizin
   unlockedPhotos: new Array(PHOTO_COUNT).fill(false),
   stats: {
     feeds: 0,
@@ -92,6 +94,8 @@ let state = {
   },
   dailyStreak: { count: 0, best: 0, lastClaim: null },
   achievementsClaimed: {},
+  cards: {}, // gesammelte Sammelkarten: id -> Anzahl
+  wheel: { lastSpin: null }, // Datum des letzten Glücksrad-Drehs
   lastSave: Date.now(),
 };
 
@@ -125,6 +129,8 @@ function loadState() {
       if (typeof state.dailyStreak.count !== "number") state.dailyStreak.count = 0;
       if (typeof state.dailyStreak.best !== "number") state.dailyStreak.best = 0;
       if (!state.achievementsClaimed) state.achievementsClaimed = {};
+      if (!state.cards) state.cards = {};
+      if (!state.wheel) state.wheel = { lastSpin: null };
       // Verfall seit letztem Besuch nachholen (nur wenn Summi noch lebt)
       if (!state.isDead) {
         const elapsedSec = Math.min(
@@ -228,6 +234,10 @@ const EYES = {
     '<path d="M -11 0 Q 0 4 11 0" stroke="#5A3F34" stroke-width="4" fill="none" stroke-linecap="round"/>',
   dead:
     '<path d="M -10 -8 L 10 8 M 10 -8 L -10 8" stroke="#4A3730" stroke-width="4" fill="none" stroke-linecap="round"/>',
+  torn:
+    '<circle cx="0" cy="1" r="5.5" fill="#4A3730"/><path d="M -9 -9 Q 0 -14 9 -9" stroke="#4A3730" stroke-width="3.2" fill="none" stroke-linecap="round"/>',
+  sick:
+    '<path d="M -9 -1 Q 0 3 9 -1" stroke="#4A3730" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
 };
 
 const MOUTHS = {
@@ -238,6 +248,8 @@ const MOUTHS = {
   crying: "M 132 170 Q 150 148 168 170",
   sleeping: "", // Schlafmund wird separat als offenes Oval + Sabbertropfen angezeigt
   dead: "M 136 162 Q 150 156 164 162 Q 150 168 136 162",
+  torn: "M 132 170 Q 150 148 168 170",
+  sick: "M 134 166 Q 150 158 166 166",
 };
 
 // WEINEN: wenn Hunger ODER Spaß unter die kritische Schwelle fallen.
@@ -245,6 +257,8 @@ const CRY_THRESHOLD = 20;
 
 function computeMood() {
   if (state.isDead) return "dead";
+  if (state.isTorn) return "torn";
+  if (state.isSick) return "sick";
   if (isSleeping) return "sleeping";
   if (forcedCrying) return "crying"; // hat "Nein" beim Fernsehen gehört
   if (isWatchingTV) return "happy";
@@ -260,8 +274,12 @@ let lastMood = null;
 function renderMood() {
   const mood = computeMood();
   el.bearWrap.classList.toggle("fainted", mood === "dead");
-  el.bearWrap.classList.toggle("crying", mood === "crying");
+  el.bearWrap.classList.toggle("crying", mood === "crying" || mood === "torn");
+  el.bearWrap.classList.toggle("torn", mood === "torn");
+  el.bearWrap.classList.toggle("sick", mood === "sick");
+  el.bearWrap.classList.toggle("mood-happy", mood === "happy");
   el.comfortButtons.classList.toggle("show", mood === "crying");
+  document.getElementById("sewButtonWrap").classList.toggle("show", mood === "torn");
   if (mood === lastMood) return; // nur bei Änderung neu zeichnen
   lastMood = mood;
 
@@ -270,10 +288,10 @@ function renderMood() {
   el.eyeLeft.innerHTML = EYES[mood];
   el.eyeRight.innerHTML = EYES[mood];
   el.mouth.setAttribute("d", MOUTHS[mood]);
-  const showTear = mood === "verySad" || mood === "crying";
+  const showTear = mood === "verySad" || mood === "crying" || mood === "torn";
   el.tear.style.opacity = showTear ? "1" : "0";
   el.tear.setAttribute("d", "M 118 118 q -4 10 0 16 q 4 -6 0 -16 Z");
-  el.tear2.style.opacity = mood === "crying" ? "1" : "0";
+  el.tear2.style.opacity = mood === "crying" || mood === "torn" ? "1" : "0";
 }
 
 // Feste "zufällige" Positionen für Schmutzflecken (bleiben stabil beim Rendern)
@@ -648,6 +666,7 @@ function registerInteraction(tired = false) {
 function toggleManualSleep() {
   if (state.isDead) return showToast("😵 Summi ist ohnmächtig – erst wiederbeleben!");
   if (isWorking) return showToast("💼 Erst wenn er mit der Arbeit fertig ist!");
+  if (state.isTorn) return showToast("🪡 Erst die Naht flicken, dann kann Summi schlafen!");
   if (isSleeping) {
     wakeUp();
     scheduleSleep(IDLE_SLEEP_MS);
@@ -722,6 +741,8 @@ function scheduleTV() {
 function maybeAskTV() {
   const blocked =
     state.isDead ||
+    state.isTorn ||
+    state.isSick ||
     isSleeping ||
     isWorking ||
     isWatchingTV ||
@@ -776,6 +797,8 @@ const WORK_MAX_MS = 20000;
 
 function startWork() {
   if (actionsBlocked()) return;
+  if (state.isTorn) return showToast("🪡 Erst die Naht flicken, dann kann Summi wieder arbeiten!");
+  if (state.isSick) return showToast("🤒 Summi ist krank – erst Medizin geben!");
   isWorking = true;
   el.bearWrap.classList.add("working");
   // Zeigt das Spielzeug, mit dem Summi während der Arbeit "schaukelt" –
@@ -813,6 +836,87 @@ function finishWork() {
   saveState();
   checkAchievements();
 }
+
+/* ---------------------------------------------------------------------
+   7e) NAHT-RISS & NÄHEN
+   Selten reißt eine Naht auf. Der Bär "weint" (wie beim Weinen), bis man
+   sie zunäht. Danach ist er noch etwas geschwächt und möchte trösten
+   werden - über Essen oder Fernsehen (natürliche Folge, weil Hunger/Spaß
+   nach dem Nähen etwas absinken und die bestehende Sprech-/Cry-Logik das
+   von selbst aufgreift).
+--------------------------------------------------------------------- */
+let afflictionTimeout = null;
+const AFFLICTION_CHECK_MIN_MS = 5 * 60 * 1000; // alle 5-15 Minuten einmal prüfen
+const AFFLICTION_CHECK_MAX_MS = 15 * 60 * 1000;
+const TEAR_CHANCE = 0.12; // Wahrscheinlichkeit pro Prüfung
+const SICK_CHANCE = 0.08;
+
+function scheduleAfflictionCheck() {
+  clearTimeout(afflictionTimeout);
+  const delay = AFFLICTION_CHECK_MIN_MS + Math.random() * (AFFLICTION_CHECK_MAX_MS - AFFLICTION_CHECK_MIN_MS);
+  afflictionTimeout = setTimeout(rollAffliction, delay);
+}
+
+function rollAffliction() {
+  const blocked =
+    state.isDead || state.isTorn || state.isSick || isSleeping || isWorking ||
+    !overlay.classList.contains("hidden");
+  if (!blocked) {
+    const r = Math.random();
+    if (r < TEAR_CHANCE) {
+      state.isTorn = true;
+      showToast("😢 Autsch! Eine Naht ist aufgerissen!");
+      registerInteraction();
+      renderAll();
+      saveState();
+    } else if (r < TEAR_CHANCE + SICK_CHANCE) {
+      state.isSick = true;
+      showToast("🤒 Summi fühlt sich plötzlich nicht gut...");
+      registerInteraction();
+      renderAll();
+      saveState();
+      document.getElementById("sickPrompt").classList.remove("hidden");
+    }
+  }
+  scheduleAfflictionCheck();
+}
+
+function sewBear() {
+  if (!state.isTorn) return;
+  state.isTorn = false;
+  state.love = clamp(state.love + 6);
+  // Nach dem Nähen etwas geschwächt - er hat noch Hunger und möchte Trost.
+  state.hunger = clamp(state.hunger - 15);
+  state.fun = clamp(state.fun - 10);
+  showToast("🪡 Fertig genäht! Summi hätte jetzt gern etwas zu essen oder Fernsehen...");
+  spawnParticles("🧵", 3);
+  vibrate(20);
+  registerInteraction();
+  renderAll();
+  saveState();
+}
+
+function giveMedicine() {
+  if (!state.isSick) return;
+  if (state.coins < 20) {
+    showToast("Noch nicht genug 🪙 Coins für Medizin! Geh dafür arbeiten.");
+    return;
+  }
+  state.coins -= 20;
+  state.isSick = false;
+  state.love = clamp(state.love + 8);
+  state.hunger = clamp(state.hunger + 5);
+  document.getElementById("sickPrompt").classList.add("hidden");
+  showToast("🌡️ Medizin gegeben – Summi geht es gleich besser!");
+  spawnParticles("💊", 3);
+  vibrate(20);
+  registerInteraction();
+  renderAll();
+  saveState();
+}
+
+document.getElementById("btnSew").addEventListener("click", sewBear);
+document.getElementById("btnGiveMedicine").addEventListener("click", giveMedicine);
 
 /* ---------------------------------------------------------------------
    8) VERFALL ÜBER ZEIT
@@ -1057,17 +1161,22 @@ function setShopTab(tab) {
   shopActiveTab = tab;
   document.getElementById("shopTabToys").classList.toggle("active", tab === "toys");
   document.getElementById("shopTabClothes").classList.toggle("active", tab === "clothes");
+  document.getElementById("shopTabCards").classList.toggle("active", tab === "cards");
   shopTabHint.textContent =
     tab === "toys"
       ? "Kaufe Spielzeug für mehr Spaß! Coins bekommst du fürs Arbeiten und in Minispielen."
-      : "Kleide Summi ein! Getragene Sachen sieht man direkt am Bären.";
-  inventoryTitle.textContent = tab === "toys" ? "🎒 Spielzeug-Inventar" : "🎒 Kleiderschrank";
+      : tab === "clothes"
+      ? "Kleide Summi ein! Getragene Sachen sieht man direkt am Bären."
+      : "Öffne Booster-Packs und sammle alle Karten!";
+  inventoryTitle.textContent = tab === "toys" ? "🎒 Spielzeug-Inventar" : tab === "clothes" ? "🎒 Kleiderschrank" : "🎴 Deine Karten";
   renderShop();
 }
 
 function renderShop() {
   if (shopActiveTab === "clothes") {
     renderClothesShop();
+  } else if (shopActiveTab === "cards") {
+    renderCardsShop();
   } else {
     renderToyShop();
   }
@@ -1317,6 +1426,163 @@ function startTickLoop() {
 }
 
 /* ---------------------------------------------------------------------
+   7f-2) SAMMELKARTEN & BOOSTER-PACKS
+   Platzhalter-Karten (Emoji + Farbverlauf je Seltenheit). Später einfach
+   durch echte Bilder ersetzbar: dazu bei einer Karte ein "img"-Feld mit
+   dem Dateipfad ergänzen - das Kartenraster nutzt dann automatisch das
+   Bild statt Emoji+Farbe (siehe cardTileHtml()).
+--------------------------------------------------------------------- */
+const CARD_RARITIES = {
+  common: { label: "Common", weight: 60 },
+  rare: { label: "Rare", weight: 28 },
+  ultra: { label: "Ultra", weight: 10 },
+  legendary: { label: "Legendär", weight: 2 },
+};
+
+const CARD_POOL = [
+  { id: "c_strawberry", name: "Erdbeer-Fan", emoji: "🍓", rarity: "common" },
+  { id: "c_cuddle", name: "Kuschelzeit", emoji: "🧸", rarity: "common" },
+  { id: "c_ball", name: "Ballspiel", emoji: "⚽", rarity: "common" },
+  { id: "c_yoyo", name: "Jo-Jo-Trick", emoji: "🪀", rarity: "common" },
+  { id: "c_scarf", name: "Warmer Schal", emoji: "🧣", rarity: "common" },
+  { id: "c_piglet", name: "Ferkel-Freund", emoji: "🐷", rarity: "common" },
+  { id: "c_balloon", name: "Luftballon", emoji: "🎈", rarity: "common" },
+  { id: "c_blocks", name: "Bauklötze", emoji: "🧩", rarity: "common" },
+  { id: "r_cowboy", name: "Cowboy-Abenteuer", emoji: "🤠", rarity: "rare" },
+  { id: "r_kite", name: "Drachen-Flug", emoji: "🪁", rarity: "rare" },
+  { id: "r_bow", name: "Elegante Fliege", emoji: "🎀", rarity: "rare" },
+  { id: "r_glasses", name: "Coole Brille", emoji: "🕶️", rarity: "rare" },
+  { id: "r_honey", name: "Honig-Boost", emoji: "🍯", rarity: "rare" },
+  { id: "u_hat", name: "Der Gentleman", emoji: "🎩", rarity: "ultra" },
+  { id: "u_flower", name: "Blütenzauber", emoji: "🌸", rarity: "ultra" },
+  { id: "l_dream", name: "Traumwelt-Summi", emoji: "🌈", rarity: "legendary" },
+];
+
+const BOOSTER_PACKS = [
+  { id: "basic", name: "Standard-Pack", emoji: "🎴", desc: "3 zufällige Karten", cost: 40, currency: "coins", cardCount: 3, boosted: false },
+  { id: "premium", name: "Glücks-Pack", emoji: "✨", desc: "3 Karten, bessere Chance auf Seltenes!", cost: 12, currency: "strawberries", cardCount: 3, boosted: true },
+];
+
+function rollCardRarity(boosted) {
+  const weights = Object.entries(CARD_RARITIES).map(([key, r]) => ({
+    key,
+    weight: boosted && key !== "common" ? r.weight * 2 : r.weight,
+  }));
+  const total = weights.reduce((sum, w) => sum + w.weight, 0);
+  let roll = Math.random() * total;
+  for (const w of weights) {
+    if (roll < w.weight) return w.key;
+    roll -= w.weight;
+  }
+  return "common";
+}
+
+function pickRandomCard(rarity) {
+  const pool = CARD_POOL.filter((c) => c.rarity === rarity);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function cardTileHtml(card, options = {}) {
+  const owned = state.cards[card.id] || 0;
+  if (!owned && !options.forceShow) {
+    return `<div class="card-tile locked"><span class="card-lock">🔒</span></div>`;
+  }
+  const countBadge = owned > 1 ? `<span class="card-count">×${owned}</span>` : "";
+  const revealClass = options.reveal ? "reveal-in" : "";
+  const delay = options.delay ? `style="animation-delay:${options.delay}s"` : "";
+  return `
+    <div class="card-tile rarity-${card.rarity} ${revealClass}" ${delay}>
+      <span class="card-rarity-badge">${CARD_RARITIES[card.rarity].label}</span>
+      <span class="card-emoji">${card.emoji}</span>
+      <span class="card-name">${card.name}</span>
+      ${countBadge}
+    </div>`;
+}
+
+function openBoosterPack(packId) {
+  const pack = BOOSTER_PACKS.find((p) => p.id === packId);
+  if (!pack) return;
+  const balance = pack.currency === "coins" ? state.coins : state.strawberries;
+  if (balance < pack.cost) {
+    showToast("Nicht genug " + (pack.currency === "coins" ? "🪙 Coins" : "🍓 Erdbeeren") + " für dieses Pack!");
+    return;
+  }
+  if (pack.currency === "coins") state.coins -= pack.cost;
+  else state.strawberries -= pack.cost;
+
+  const drawnCards = [];
+  for (let i = 0; i < pack.cardCount; i++) {
+    const rarity = rollCardRarity(pack.boosted);
+    const card = pickRandomCard(rarity);
+    state.cards[card.id] = (state.cards[card.id] || 0) + 1;
+    drawnCards.push(card);
+  }
+
+  renderAll();
+  saveState();
+  renderShop();
+  checkAchievements();
+  showBoosterReveal(drawnCards);
+  vibrate(25);
+}
+
+function showBoosterReveal(cards) {
+  const grid = document.getElementById("boosterRevealGrid");
+  grid.innerHTML = cards
+    .map((card, i) => cardTileHtml(card, { forceShow: true, reveal: true, delay: i * 0.15 }))
+    .join("");
+  document.getElementById("boosterOpenOverlay").classList.remove("hidden");
+}
+
+function closeBoosterReveal() {
+  document.getElementById("boosterOpenOverlay").classList.add("hidden");
+}
+
+function renderCardsShop() {
+  shopList.innerHTML = BOOSTER_PACKS.map((pack) => {
+    const balance = pack.currency === "coins" ? state.coins : state.strawberries;
+    const costLabel = pack.currency === "coins"
+      ? `${pack.cost}<img src="coin_gold_bear.png" alt="Coins" class="coin-icon">`
+      : `${pack.cost} 🍓`;
+    return `
+    <div class="booster-item">
+      <div class="booster-item-emoji">${pack.emoji}</div>
+      <div class="booster-item-info">
+        <div class="booster-item-name">${pack.name}</div>
+        <div class="booster-item-desc">${pack.desc}</div>
+      </div>
+      <button class="booster-buy-btn" data-pack="${pack.id}" ${balance < pack.cost ? "disabled" : ""}>
+        ${costLabel}
+      </button>
+    </div>`;
+  }).join("");
+
+  shopList.querySelectorAll(".booster-buy-btn").forEach((btn) => {
+    btn.addEventListener("click", () => openBoosterPack(btn.dataset.pack));
+  });
+
+  inventoryTitle.textContent = "🎴 Deine Karten";
+  const owned = CARD_POOL.filter((c) => state.cards[c.id] > 0).length;
+  inventoryList.innerHTML = `<span class="inventory-empty">${owned} / ${CARD_POOL.length} Karten gesammelt – im Kartenalbum (🎴 oben) ansehen.</span>`;
+}
+
+function openCardAlbum() {
+  const grid = document.getElementById("cardAlbumGrid");
+  grid.innerHTML = CARD_POOL.map((card) => cardTileHtml(card)).join("");
+  const owned = CARD_POOL.filter((c) => state.cards[c.id] > 0).length;
+  document.getElementById("cardAlbumProgress").textContent = owned + " / " + CARD_POOL.length + " Karten gesammelt";
+  document.getElementById("cardAlbumOverlay").classList.remove("hidden");
+}
+
+document.getElementById("cardAlbumBtn").addEventListener("click", openCardAlbum);
+document.getElementById("cardAlbumClose").addEventListener("click", () => {
+  document.getElementById("cardAlbumOverlay").classList.add("hidden");
+});
+document.getElementById("boosterOpenClose").addEventListener("click", closeBoosterReveal);
+document.getElementById("boosterRevealDoneBtn").addEventListener("click", closeBoosterReveal);
+document.getElementById("shopTabCards").addEventListener("click", () => setShopTab("cards"));
+
+/* ---------------------------------------------------------------------
    7g) TÄGLICHE BELOHNUNG (Login-Serie) & ERFOLGE
 --------------------------------------------------------------------- */
 const DAILY_REWARDS = [
@@ -1366,7 +1632,7 @@ function claimDailyReward() {
   saveState();
   renderDailyReward();
   checkAchievements();
-  document.getElementById("questBtn").classList.toggle("has-badge", canClaimDailyReward());
+  document.getElementById("questBtn").classList.toggle("has-badge", canClaimDailyReward() || canSpinWheel());
 }
 
 function renderDailyReward() {
@@ -1394,6 +1660,136 @@ function renderDailyReward() {
   }
 }
 
+/* ---------------------------------------------------------------------
+   7h) TÄGLICHES GLÜCKSRAD (einmal pro Tag, zusätzlich zur Login-Serie)
+--------------------------------------------------------------------- */
+const WHEEL_PRIZES = [
+  { type: "coins", amount: 10, weight: 25, emoji: "🪙", label: "10 Coins" },
+  { type: "strawberries", amount: 5, weight: 20, emoji: "🍓", label: "5 Erdbeeren" },
+  { type: "coins", amount: 25, weight: 20, emoji: "🪙", label: "25 Coins" },
+  { type: "toy", weight: 10, emoji: "🎁", label: "Spielzeug" },
+  { type: "strawberries", amount: 10, weight: 15, emoji: "🍓", label: "10 Erdbeeren" },
+  { type: "coins", amount: 50, weight: 6, emoji: "🪙", label: "50 Coins" },
+  { type: "booster", weight: 3, emoji: "🎴", label: "Booster-Pack" },
+  { type: "coins", amount: 100, weight: 1, emoji: "💎", label: "Jackpot!" },
+];
+const WHEEL_SEGMENT_COLORS = ["#F4A6A6", "#8FC6C9", "#FFD97D", "#C79AF0", "#7FB3E0", "#F26D9B", "#A9CC8C", "#F2B84B"];
+
+function canSpinWheel() {
+  return state.wheel.lastSpin !== todayStr();
+}
+
+function renderWheelSegments() {
+  const wheelEl = document.getElementById("wheelEl");
+  if (!wheelEl) return;
+  const n = WHEEL_PRIZES.length;
+  const segAngle = 360 / n;
+  const stops = WHEEL_PRIZES.map((_, i) =>
+    `${WHEEL_SEGMENT_COLORS[i % WHEEL_SEGMENT_COLORS.length]} ${i * segAngle}deg ${(i + 1) * segAngle}deg`
+  ).join(", ");
+  wheelEl.style.background = `conic-gradient(${stops})`;
+  wheelEl.innerHTML = WHEEL_PRIZES.map((p, i) => {
+    const center = i * segAngle + segAngle / 2;
+    return `<div class="wheel-label" style="transform:rotate(${center}deg)">
+      <span style="transform:rotate(${-center}deg)">${p.emoji}</span>
+    </div>`;
+  }).join("");
+}
+
+function rollWheelIndex() {
+  const total = WHEEL_PRIZES.reduce((sum, p) => sum + p.weight, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < WHEEL_PRIZES.length; i++) {
+    if (r < WHEEL_PRIZES[i].weight) return i;
+    r -= WHEEL_PRIZES[i].weight;
+  }
+  return 0;
+}
+
+let wheelRotation = 0;
+function spinWheelToIndex(index) {
+  const wheelEl = document.getElementById("wheelEl");
+  const segAngle = 360 / WHEEL_PRIZES.length;
+  const center = index * segAngle + segAngle / 2;
+  const currentMod = ((wheelRotation % 360) + 360) % 360;
+  const delta = (((360 - center) - currentMod) % 360 + 360) % 360;
+  wheelRotation += 360 * 5 + delta; // 5 zusätzliche volle Umdrehungen für den Spannungsbogen
+  wheelEl.style.transform = "rotate(" + wheelRotation + "deg)";
+}
+
+function grantWheelPrize(prize) {
+  if (prize.type === "coins") {
+    state.coins += prize.amount;
+    return prize.amount + " Coins";
+  }
+  if (prize.type === "strawberries") {
+    addStrawberries(prize.amount);
+    return prize.amount + " 🍓";
+  }
+  if (prize.type === "toy") {
+    const missing = TOYS.filter((t) => !state.toys[t.id]);
+    if (missing.length === 0) {
+      state.coins += 20;
+      return "20 Coins (schon alles Spielzeug!)";
+    }
+    const toy = missing[Math.floor(Math.random() * missing.length)];
+    state.toys[toy.id] = (state.toys[toy.id] || 0) + 1;
+    return toy.emoji + " " + toy.name;
+  }
+  if (prize.type === "booster") {
+    const pack = BOOSTER_PACKS[0];
+    const drawn = [];
+    for (let i = 0; i < pack.cardCount; i++) {
+      const card = pickRandomCard(rollCardRarity(pack.boosted));
+      state.cards[card.id] = (state.cards[card.id] || 0) + 1;
+      drawn.push(card);
+    }
+    setTimeout(() => showBoosterReveal(drawn), 600);
+    return "ein Booster-Pack";
+  }
+  return "";
+}
+
+function spinWheel() {
+  if (!canSpinWheel()) {
+    showToast("🎡 Heute schon gedreht – komm morgen wieder!");
+    return;
+  }
+  const spinBtn = document.getElementById("wheelSpinBtn");
+  spinBtn.disabled = true;
+  const index = rollWheelIndex();
+  const prize = WHEEL_PRIZES[index];
+  spinWheelToIndex(index);
+  vibrate(15);
+
+  setTimeout(() => {
+    const resultLabel = grantWheelPrize(prize);
+    state.wheel.lastSpin = todayStr();
+    document.getElementById("wheelResultText").textContent = "🎉 Gewonnen: " + resultLabel + "!";
+    spawnParticles(prize.emoji, 5);
+    vibrate(30);
+    renderAll();
+    saveState();
+    renderWheelState();
+    checkAchievements();
+    document.getElementById("questBtn").classList.toggle("has-badge", canClaimDailyReward() || canSpinWheel());
+  }, 3000);
+}
+
+function renderWheelState() {
+  const spinBtn = document.getElementById("wheelSpinBtn");
+  if (!spinBtn) return;
+  if (canSpinWheel()) {
+    spinBtn.disabled = false;
+    spinBtn.textContent = "🎡 Drehen";
+  } else {
+    spinBtn.disabled = true;
+    spinBtn.textContent = "✅ Heute schon gedreht";
+  }
+}
+
+document.getElementById("wheelSpinBtn").addEventListener("click", spinWheel);
+
 // Erfolge: einmalige Coin-/Erdbeer-Belohnungen bei Meilensteinen.
 const ACHIEVEMENTS = [
   { id: "feed1", icon: "🍓", title: "Erster Bissen", desc: "Füttere Summi einmal.", target: 1, get: (s) => s.feeds, reward: { coins: 5, strawberries: 0 } },
@@ -1407,6 +1803,8 @@ const ACHIEVEMENTS = [
   { id: "clothes3", icon: "👒", title: "Modebewusst", desc: "Besitze 3 Kleidungsstücke.", target: 3, get: (s) => s.clothesVariety, reward: { coins: 45, strawberries: 0 } },
   { id: "photos5", icon: "📸", title: "Fototalent", desc: "Schalte 5 Erinnerungsfotos frei.", target: 5, get: (s) => s.photosUnlocked, reward: { coins: 35, strawberries: 0 } },
   { id: "streak7", icon: "📅", title: "Wochentreue", desc: "Hol 7 Tage in Folge die tägliche Belohnung ab.", target: 7, get: (s) => s.streakBest, reward: { coins: 100, strawberries: 10 } },
+  { id: "cards8", icon: "🎴", title: "Kartensammler", desc: "Sammle 8 verschiedene Karten.", target: 8, get: (s) => s.cardVariety, reward: { coins: 60, strawberries: 0 } },
+  { id: "cardsAll", icon: "🌈", title: "Vollständiges Album", desc: "Sammle alle " + CARD_POOL.length + " Karten.", target: CARD_POOL.length, get: (s) => s.cardVariety, reward: { coins: 150, strawberries: 10 } },
 ];
 
 function statsSnapshot() {
@@ -1420,6 +1818,7 @@ function statsSnapshot() {
     clothesVariety: CLOTHES.filter((c) => state.clothes[c.id] > 0).length,
     photosUnlocked: state.unlockedPhotos.filter(Boolean).length,
     streakBest: state.dailyStreak.best,
+    cardVariety: CARD_POOL.filter((c) => state.cards[c.id] > 0).length,
   };
 }
 
@@ -1474,6 +1873,7 @@ document.getElementById("questBtn").addEventListener("click", () => {
   questOverlay.classList.remove("hidden");
   renderDailyReward();
   renderAchievements();
+  renderWheelState();
 });
 document.getElementById("questClose").addEventListener("click", () => {
   questOverlay.classList.add("hidden");
@@ -1509,6 +1909,8 @@ let currentGameKey = null;
 // ---- Gemeinsamer Ablauf ----
 function openGameOverlay() {
   if (actionsBlocked()) return;
+  if (state.isTorn) return showToast("🪡 Erst die Naht flicken, dann kann Summi wieder spielen!");
+  if (state.isSick) return showToast("🤒 Summi ist krank – erst Medizin geben!");
   registerInteraction();
   overlay.classList.remove("hidden");
   showMenu();
@@ -2740,8 +3142,11 @@ saveState();
 startTickLoop();
 scheduleSpeech(true);
 scheduleTV();
+scheduleAfflictionCheck();
+renderWheelSegments();
+if (state.isSick) document.getElementById("sickPrompt").classList.remove("hidden");
 checkAchievements();
-document.getElementById("questBtn").classList.toggle("has-badge", canClaimDailyReward());
+document.getElementById("questBtn").classList.toggle("has-badge", canClaimDailyReward() || canSpinWheel());
 if (state.isDead) {
   showDeathOverlay();
 } else {

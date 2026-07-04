@@ -50,6 +50,7 @@
     <div class="topbar2-icons">
       <button class="icon-btn" id="questBtn" aria-label="Erfolge" title="Tägliche Belohnung &amp; Erfolge">🏆</button>
       <button class="icon-btn" id="shopBtn" aria-label="Shop" title="Spielzeug-Shop">🛍️</button>
+      <button class="icon-btn" id="cardAlbumBtn" aria-label="Kartenalbum" title="Sammelkarten-Album">🎴</button>
       <button class="icon-btn" id="albumBtn" aria-label="Fotoalbum" title="Fotoalbum">📸</button>
       <button class="icon-btn" id="infoBtn" aria-label="Info" title="Info">ℹ️</button>
       <button class="icon-btn hidden" id="installBtn" aria-label="App installieren" title="Als App installieren">📲</button>
@@ -90,8 +91,14 @@
       <!-- "Zzz"-Schlafblase -->
       <div class="zzz" id="zzzBubble">💤</div>
 
-      <!-- Fernseh-Icon (nur sichtbar während Summi fernsieht) -->
-      <div class="tv-icon" id="tvIcon">📺</div>
+      <!-- Fieberthermometer (nur sichtbar wenn Summi krank ist) -->
+      <div class="thermometer-icon" id="thermometerIcon">🌡️</div>
+
+      <!-- Fernseher: echtes TV-Objekt mit "laufendem Programm" (nur sichtbar während Summi fernsieht) -->
+      <div class="tv-object" id="tvObject">
+        <div class="tv-screen" id="tvScreen">📺</div>
+        <div class="tv-stand"></div>
+      </div>
 
       <!-- Kleine Spiel-Animation während der Arbeit (schaukelt mit Spielzeug) -->
       <div class="work-toy-icon" id="workToyIcon">🧸</div>
@@ -182,6 +189,12 @@
         <!-- Schmutzflecken -->
         <g id="dirtSpots"></g>
 
+        <!-- Aufgerissene Naht am Arm (nur sichtbar wenn state.isTorn) -->
+        <g id="seamTear" class="accessory hidden-acc">
+          <ellipse cx="70" cy="206" rx="7" ry="5" fill="#FFF8EE"/>
+          <path d="M 62 197 L 70 202 L 63 207 L 71 212 L 64 217" stroke="#8A6B4C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </g>
+
         <!-- Arbeits-Uniform (Asset: uniform_blue_action) – nur sichtbar, wenn Summi arbeitet -->
         <g id="uniformOverlay">
           <rect x="88" y="178" width="124" height="100" rx="32" fill="#16213A"/>
@@ -239,6 +252,19 @@
       <div class="comfort-buttons" id="comfortButtons">
         <button class="comfort-btn" id="btnKiss">😘 Kuss geben</button>
         <button class="comfort-btn" id="btnSniff">👃 An ihm riechen</button>
+      </div>
+
+      <!-- Näh-Button: nur sichtbar, wenn eine Naht aufgerissen ist -->
+      <div class="sew-button-wrap" id="sewButtonWrap">
+        <button class="comfort-btn" id="btnSew">🪡 Naht flicken</button>
+      </div>
+
+      <!-- Medizin-Overlay: nur sichtbar, wenn Summi krank ist -->
+      <div class="tv-prompt hidden" id="sickPrompt">
+        <p>🤒 Summi fühlt sich nicht gut...</p>
+        <div class="tv-prompt-buttons">
+          <button class="comfort-btn" id="btnGiveMedicine">🌡️ Medizin geben (-20 🪙)</button>
+        </div>
       </div>
     </div>
 
@@ -403,6 +429,7 @@
     <div class="shop-tabs">
       <button class="shop-tab active" id="shopTabToys" data-tab="toys">🧸 Spielzeug</button>
       <button class="shop-tab" id="shopTabClothes" data-tab="clothes">👒 Kleidung</button>
+      <button class="shop-tab" id="shopTabCards" data-tab="cards">🎴 Karten</button>
     </div>
     <p class="game-hint" id="shopTabHint">Kaufe Spielzeug für mehr Spaß! Coins bekommst du fürs Arbeiten und in Minispielen.</p>
     <div class="shop-list" id="shopList"></div>
@@ -474,6 +501,17 @@
       <div class="daily-streak-row" id="dailyStreakRow"></div>
       <button class="primary-btn" id="dailyClaimBtn">Belohnung abholen</button>
     </div>
+
+    <h3 class="inventory-title">🎡 Tägliches Glücksrad</h3>
+    <div class="wheel-box">
+      <div class="wheel-wrap">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel" id="wheelEl"></div>
+      </div>
+      <p class="game-hint" id="wheelResultText">Einmal pro Tag kostenlos drehen!</p>
+      <button class="primary-btn" id="wheelSpinBtn">🎡 Drehen</button>
+    </div>
+
     <h3 class="inventory-title">🏅 Erfolge</h3>
     <div class="achievement-list" id="achievementList"></div>
   </div>
@@ -490,6 +528,26 @@
     </div>
     <p class="game-hint" id="toyPlayHint">Tippe schnell, damit Summi Spaß hat!</p>
     <div class="toyplay-bar"><div class="toyplay-fill" id="toyPlayFill"></div></div>
+  </div>
+</div>
+
+<!-- ===== Booster-Pack öffnen (Reveal-Overlay) ===== -->
+<div class="overlay hidden" id="boosterOpenOverlay">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="boosterOpenClose" aria-label="Schließen">✕</button>
+    <h2 class="album-title">🎴 Neue Karten!</h2>
+    <div class="booster-reveal-grid" id="boosterRevealGrid"></div>
+    <button class="primary-btn" id="boosterRevealDoneBtn" style="margin-top:14px;">Super!</button>
+  </div>
+</div>
+
+<!-- ===== Sammelkarten-Album ===== -->
+<div class="overlay hidden" id="cardAlbumOverlay">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="cardAlbumClose" aria-label="Schließen">✕</button>
+    <h2 class="album-title">🎴 Summis Kartenalbum</h2>
+    <p class="game-hint" id="cardAlbumProgress">0 / 0 Karten gesammelt</p>
+    <div class="card-album-grid" id="cardAlbumGrid"></div>
   </div>
 </div>
 
