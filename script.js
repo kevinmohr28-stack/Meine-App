@@ -1957,7 +1957,21 @@ function closeGameOverlay() {
   stopBalloonGame();
   overlayPanel.classList.remove("no-scroll");
   overlay.classList.add("hidden");
+  // War Summi ohnmächtig und hat währenddessen Erdbeeren im Minispiel
+  // gesammelt, zurück zum Ohnmacht-Screen (der Wiederbeleben-Button ist
+  // jetzt evtl. schon freigeschaltet).
+  if (state.isDead) el.deathOverlay.classList.remove("hidden");
 }
+
+// Erlaubt das Spielen von Minispielen, während Summi ohnmächtig ist -
+// sonst gäbe es keinen Weg mehr, die zum Wiederbeleben nötigen 🍓
+// Erdbeeren zu verdienen (die Minispiele geben bei jedem Ergebnis welche).
+function openGameOverlayFromDeath() {
+  el.deathOverlay.classList.add("hidden");
+  overlay.classList.remove("hidden");
+  showMenu();
+}
+document.getElementById("deathPlayBtn").addEventListener("click", openGameOverlayFromDeath);
 
 function showMenu() {
   stopGameLoop();

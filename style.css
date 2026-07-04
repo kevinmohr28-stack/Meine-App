@@ -1112,6 +1112,7 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   color: var(--pink-dark);
 }
 .death-panel .primary-btn{ width: 100%; margin-bottom: 8px; }
+.death-panel .secondary-btn{ width: 100%; margin-bottom: 8px; }
 
 /* ===== Toast ===== */
 .toast{
