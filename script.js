@@ -986,6 +986,57 @@ const CLOTHES = [
   { id: "flower", slot: "ear", groupId: "accessoryFlower", emoji: "🌸", name: "Blümchen", desc: "Süß hinterm Ohr", cost: 25, loveGain: 5 },
 ];
 
+// Zeigt im Shop exakt dieselbe Zeichnung wie am Bären selbst (statt eines
+// Emojis, das optisch anders aussieht als das tatsächliche SVG-Accessoire).
+// Die Pfade sind 1:1 aus den #accessory*-Gruppen im HTML kopiert, nur mit
+// einem engeren viewBox-Ausschnitt fürs kleine Vorschaubild.
+const CLOTHES_PREVIEW = {
+  bow: {
+    viewBox: "115 165 70 42",
+    inner: `
+      <path d="M 150 186 L 128 172 Q 122 186 128 200 Z" fill="#7FB3B8"/>
+      <path d="M 150 186 L 172 172 Q 178 186 172 200 Z" fill="#5FA3A8"/>
+      <circle cx="150" cy="186" r="7" fill="#5C4A42"/>`,
+  },
+  scarf: {
+    viewBox: "90 172 120 68",
+    inner: `
+      <path d="M 96 178 Q 150 200 204 178 L 204 192 Q 150 214 96 192 Z" fill="#E2564F"/>
+      <path d="M 140 205 L 132 236 L 150 226 Z" fill="#C23F3F"/>
+      <path d="M 160 205 L 168 232 L 150 224 Z" fill="#E2564F"/>`,
+  },
+  glasses: {
+    viewBox: "85 88 130 48",
+    inner: `
+      <circle cx="120" cy="112" r="19" fill="none" stroke="#4A3730" stroke-width="4"/>
+      <circle cx="180" cy="112" r="19" fill="none" stroke="#4A3730" stroke-width="4"/>
+      <path d="M 139 112 L 161 112" stroke="#4A3730" stroke-width="4"/>
+      <path d="M 101 108 L 90 100" stroke="#4A3730" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 199 108 L 210 100" stroke="#4A3730" stroke-width="4" stroke-linecap="round"/>`,
+  },
+  hat: {
+    viewBox: "95 10 110 70",
+    inner: `
+      <ellipse cx="150" cy="62" rx="52" ry="12" fill="#5C4A42"/>
+      <path d="M 112 64 Q 112 18 150 18 Q 188 18 188 64 Z" fill="#6B5850"/>
+      <ellipse cx="150" cy="64" rx="38" ry="9" fill="#7A6660"/>`,
+  },
+  cap: {
+    viewBox: "95 28 130 62",
+    inner: `
+      <path d="M 100 78 Q 108 32 150 32 Q 192 32 200 78 Q 150 68 100 78 Z" fill="#7FB3B8"/>
+      <path d="M 186 70 Q 214 70 218 82 Q 196 84 184 78 Z" fill="#5FA3A8"/>`,
+  },
+  flower: {
+    viewBox: "61 34 34 30",
+    inner: `
+      <circle cx="75" cy="50" r="5" fill="#F26D9B"/>
+      <circle cx="83" cy="44" r="5" fill="#FFA6C1"/>
+      <circle cx="85" cy="54" r="5" fill="#FFA6C1"/>
+      <circle cx="79" cy="50" r="4" fill="#FFD97D"/>`,
+  },
+};
+
 const shopOverlay = document.getElementById("shopOverlay");
 const shopList = document.getElementById("shopList");
 const inventoryList = document.getElementById("inventoryList");
@@ -1065,10 +1116,14 @@ function renderToyInventory() {
 }
 
 function renderClothesShop() {
-  shopList.innerHTML = CLOTHES.map(
-    (item) => `
+  shopList.innerHTML = CLOTHES.map((item) => {
+    const preview = CLOTHES_PREVIEW[item.id];
+    const previewHtml = preview
+      ? `<svg viewBox="${preview.viewBox}">${preview.inner}</svg>`
+      : item.emoji;
+    return `
     <div class="shop-item">
-      <div class="shop-item-emoji">${item.emoji}</div>
+      <div class="shop-item-emoji clothes-preview">${previewHtml}</div>
       <div class="shop-item-info">
         <div class="shop-item-name">${item.name}</div>
         <div class="shop-item-desc">${item.desc} · +${item.loveGain} 💗 Liebe</div>
@@ -1076,8 +1131,8 @@ function renderClothesShop() {
       <button class="shop-buy-btn" data-clothes="${item.id}" ${state.coins < item.cost ? "disabled" : ""}>
         ${item.cost}<img src="coin_gold_bear.png" alt="Coins" class="coin-icon">
       </button>
-    </div>`
-  ).join("");
+    </div>`;
+  }).join("");
 
   shopList.querySelectorAll(".shop-buy-btn").forEach((btn) => {
     btn.addEventListener("click", () => buyClothing(btn.dataset.clothes));
@@ -1440,6 +1495,7 @@ const harvestGrid = document.getElementById("harvestGrid");
 const chaseArea = document.getElementById("chaseArea");
 const chaseTarget = document.getElementById("chaseTarget");
 const simonGrid = document.getElementById("simonGrid");
+const balloonArea = document.getElementById("balloonArea");
 const gameTitleEl = document.getElementById("gameTitle");
 const gameScoreEl = document.getElementById("gameScore");
 const gameTimerEl = document.getElementById("gameTimer");
@@ -1463,6 +1519,7 @@ function closeGameOverlay() {
   stopHarvestGame();
   stopChaseGame();
   stopSimonGame();
+  stopBalloonGame();
   overlayPanel.classList.remove("no-scroll");
   overlay.classList.add("hidden");
 }
@@ -1472,6 +1529,7 @@ function showMenu() {
   stopHarvestGame();
   stopChaseGame();
   stopSimonGame();
+  stopBalloonGame();
   overlayPanel.classList.remove("no-scroll");
   gameMenu.classList.remove("hidden");
   gameScreen.classList.add("hidden");
@@ -1496,6 +1554,7 @@ function startGame(key) {
     harvestGrid.classList.add("hidden");
     chaseArea.classList.add("hidden");
     simonGrid.classList.add("hidden");
+    balloonArea.classList.add("hidden");
     jumpBtn.classList.add("hidden");
     gasBtn.classList.add("hidden");
     gameTitleEl.textContent = "🧸 Figuren-Memory";
@@ -1510,6 +1569,7 @@ function startGame(key) {
     harvestGrid.classList.remove("hidden");
     chaseArea.classList.add("hidden");
     simonGrid.classList.add("hidden");
+    balloonArea.classList.add("hidden");
     jumpBtn.classList.add("hidden");
     gasBtn.classList.add("hidden");
     gameTitleEl.textContent = "🍓 Erdbeer-Ernte";
@@ -1524,6 +1584,7 @@ function startGame(key) {
     harvestGrid.classList.add("hidden");
     chaseArea.classList.remove("hidden");
     simonGrid.classList.add("hidden");
+    balloonArea.classList.add("hidden");
     jumpBtn.classList.add("hidden");
     gasBtn.classList.add("hidden");
     gameTitleEl.textContent = "🍓 Erdbeer-Jagd";
@@ -1538,6 +1599,7 @@ function startGame(key) {
     harvestGrid.classList.add("hidden");
     chaseArea.classList.add("hidden");
     simonGrid.classList.remove("hidden");
+    balloonArea.classList.add("hidden");
     jumpBtn.classList.add("hidden");
     gasBtn.classList.add("hidden");
     gameTitleEl.textContent = "🎵 Melodie-Merker";
@@ -1546,10 +1608,26 @@ function startGame(key) {
     return;
   }
 
+  if (key === "balloon") {
+    canvas.classList.add("hidden");
+    memoryGrid.classList.add("hidden");
+    harvestGrid.classList.add("hidden");
+    chaseArea.classList.add("hidden");
+    simonGrid.classList.add("hidden");
+    balloonArea.classList.remove("hidden");
+    jumpBtn.classList.add("hidden");
+    gasBtn.classList.add("hidden");
+    gameTitleEl.textContent = "🎈 Ballon-Fang";
+    gameHintEl.textContent = "Tippe die Ballons an, bevor sie wegfliegen – meide die Bienen! 🐝";
+    startBalloonGame();
+    return;
+  }
+
   memoryGrid.classList.add("hidden");
   harvestGrid.classList.add("hidden");
   chaseArea.classList.add("hidden");
   simonGrid.classList.add("hidden");
+  balloonArea.classList.add("hidden");
   canvas.classList.remove("hidden");
   jumpBtn.classList.toggle("hidden", key !== "runner");
   gasBtn.classList.toggle("hidden", key !== "car");
@@ -1768,28 +1846,6 @@ window.addEventListener("keydown", (e) => {
     GAMES.runner.jump();
   }
 });
-
-// Kleine, allgemein nutzbare "Trefferringe" für Tipp-Feedback in Canvas-Spielen.
-// Zeigt SOFORT sichtbar, ob ein Tipp ankommt (grün = getroffen, grau = daneben).
-function addTapEffect(effectsArray, x, y, hit) {
-  effectsArray.push({ x, y, hit, life: 1 });
-}
-function updateTapEffects(effectsArray, dt) {
-  for (const fx of effectsArray) fx.life -= dt * 2.2;
-  return effectsArray.filter((fx) => fx.life > 0);
-}
-function drawTapEffects(c, effectsArray) {
-  for (const fx of effectsArray) {
-    const r = 30 * (1 - fx.life) + 10;
-    c.beginPath();
-    c.arc(fx.x, fx.y, r, 0, Math.PI * 2);
-    c.strokeStyle = fx.hit
-      ? `rgba(120, 200, 140, ${fx.life})`
-      : `rgba(150, 150, 150, ${fx.life * 0.6})`;
-    c.lineWidth = 3;
-    c.stroke();
-  }
-}
 
 /* ---- Spiel 1: Hügel-Fahrt (Hill-Climb-Racing-Stil) ---- */
 // Bewusst EINFACH gehalten: nur ein großer Gas-Knopf, keine präzisen Klicks
@@ -2070,88 +2126,146 @@ const runnerGame = {
   },
 };
 
-/* ---- Spiel 7: Ballon-Fang (fallende/steigende Ziele im Canvas) ---- */
-const BALLOON_EMOJIS = ["🎈", "🎈", "🎈", "🐝"]; // Bienen seltener treffen -> 1 von 4
-const balloonGame = {
-  title: "🎈 Ballon-Fang",
-  hint: "Tippe die Ballons an, bevor sie wegfliegen – meide die Bienen! 🐝",
-  timeLimit: 22,
-  balloons: [],
-  spawnTimer: 0,
-  effects: [],
-  init() {
-    this.balloons = [];
-    this.spawnTimer = 0.2;
-    this.effects = [];
-  },
-  update(dt) {
-    this.spawnTimer -= dt;
-    if (this.spawnTimer <= 0) {
-      this.spawnTimer = 0.55 + Math.random() * 0.4;
-      const isBee = Math.random() < 0.22;
-      this.balloons.push({
-        x: 30 + Math.random() * (canvas.width - 60),
-        y: canvas.height + 20,
-        vy: -(70 + Math.random() * 50 + runtime.elapsed * 2),
-        emoji: isBee ? "🐝" : BALLOON_EMOJIS[Math.floor(Math.random() * 3)],
-        isBee,
-        popped: false,
-        r: 22,
-      });
-    }
-    for (const b of this.balloons) {
-      b.y += b.vy * dt;
-    }
-    this.balloons = this.balloons.filter((b) => !b.popped && b.y > -30);
-    this.effects = updateTapEffects(this.effects, dt);
-  },
-  draw(c) {
-    c.clearRect(0, 0, canvas.width, canvas.height);
-    drawSky(c);
-    c.font = "34px \"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",serif";
-    c.textAlign = "center";
-    c.textBaseline = "middle";
-    for (const b of this.balloons) {
-      c.fillText(b.emoji, b.x, b.y);
-      // Kleine Schnur unter dem Ballon (nicht bei der Biene)
-      if (!b.isBee) {
-        c.strokeStyle = "rgba(140,100,80,0.4)";
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(b.x, b.y + 16);
-        c.lineTo(b.x, b.y + 26);
-        c.stroke();
-      }
-    }
-    drawTapEffects(c, this.effects);
-  },
-  onPointerDown(x, y) {
-    let hitAny = false;
-    for (const b of this.balloons) {
-      if (b.popped) continue;
-      const dist = Math.hypot(b.x - x, b.y - y);
-      if (dist < b.r + 10) {
-        b.popped = true;
-        hitAny = true;
-        if (b.isBee) {
-          runtime.score = Math.max(0, runtime.score - 2);
-          showToast("🐝 Autsch, das war eine Biene!");
-          addTapEffect(this.effects, x, y, false);
-        } else {
-          runtime.score++;
-          addTapEffect(this.effects, x, y, true);
-        }
-        break;
-      }
-    }
-    if (!hitAny) addTapEffect(this.effects, x, y, false);
-  },
-  rewardFromScore(score) {
-    return Math.min(30, Math.max(0, score * 2));
-  },
-};
+const GAMES = { car: carGame, runner: runnerGame };
 
-const GAMES = { car: carGame, runner: runnerGame, balloon: balloonGame };
+/* ---- Spiel 7: Ballon-Fang (DOM-basiert, keine Canvas-Emoji) ----
+   Emoji-Zeichen über Canvas fillText() werden auf manchen Android-Handys
+   nur als Strich/Platzhalter statt als farbiges Bild dargestellt (der
+   System-Font wird von der Canvas-Textausgabe nicht immer sauber
+   gefunden). Ganz normale HTML-Buttons wie bei der Erdbeer-Jagd
+   funktionieren dagegen überall zuverlässig, deshalb ist dieses Spiel
+   – wie Erdbeer-Ernte/-Jagd – bewusst OHNE Canvas gebaut. */
+const BALLOON_DURATION = 22; // Sekunden
+const BALLOON_RISE_MIN = 3.4; // Sekunden, die ein Ballon fürs Hochsteigen braucht
+const BALLOON_RISE_MAX = 5.5;
+let balloonState = null;
+let balloonSpawnTimeout = null;
+let balloonTimerInterval = null;
+let balloonRafId = null;
+let balloonNextId = 0;
+
+function startBalloonGame() {
+  balloonState = { balloons: [], score: 0, timeLeft: BALLOON_DURATION };
+  gameScoreEl.textContent = "Punkte: 0";
+  gameTimerEl.textContent = "⏱ " + BALLOON_DURATION;
+  document.getElementById("balloonArea").innerHTML = "";
+  scheduleBalloonSpawn();
+
+  clearInterval(balloonTimerInterval);
+  balloonTimerInterval = setInterval(() => {
+    if (!balloonState) return;
+    balloonState.timeLeft -= 1;
+    gameTimerEl.textContent = "⏱ " + Math.max(0, balloonState.timeLeft);
+    if (balloonState.timeLeft <= 0) finishBalloonGame();
+  }, 1000);
+
+  let lastFrame = performance.now();
+  const step = (now) => {
+    if (!balloonState) return;
+    const dt = Math.min((now - lastFrame) / 1000, 0.05);
+    lastFrame = now;
+    updateBalloonPositions(dt);
+    balloonRafId = requestAnimationFrame(step);
+  };
+  balloonRafId = requestAnimationFrame(step);
+}
+
+function scheduleBalloonSpawn() {
+  clearTimeout(balloonSpawnTimeout);
+  if (!balloonState) return;
+  balloonSpawnTimeout = setTimeout(() => {
+    spawnBalloon();
+    scheduleBalloonSpawn();
+  }, 550 + Math.random() * 400);
+}
+
+function spawnBalloon() {
+  if (!balloonState) return;
+  const isBee = Math.random() < 0.22;
+  const id = balloonNextId++;
+  const riseDuration = BALLOON_RISE_MIN + Math.random() * (BALLOON_RISE_MAX - BALLOON_RISE_MIN);
+  const balloon = {
+    id,
+    isBee,
+    leftPct: 10 + Math.random() * 80,
+    topPct: 108, // startet knapp unterhalb des sichtbaren Feldes
+    riseDuration,
+    elapsed: 0,
+    popped: false,
+  };
+  balloonState.balloons.push(balloon);
+
+  const btn = document.createElement("button");
+  btn.className = "balloon-item";
+  btn.textContent = isBee ? "🐝" : "🎈";
+  btn.style.left = balloon.leftPct + "%";
+  btn.style.top = balloon.topPct + "%";
+  btn.dataset.id = id;
+  btn.addEventListener("click", () => popBalloon(id));
+  document.getElementById("balloonArea").appendChild(btn);
+  balloon.el = btn;
+}
+
+function updateBalloonPositions(dt) {
+  if (!balloonState) return;
+  for (const b of balloonState.balloons) {
+    if (b.popped) continue;
+    b.elapsed += dt;
+    b.topPct = 108 - (b.elapsed / b.riseDuration) * 128; // steigt bis über den oberen Rand
+    b.el.style.top = b.topPct + "%";
+    if (b.topPct < -20) {
+      b.popped = true; // oben rausgeflogen, ohne Strafe einfach entfernen
+      b.el.remove();
+    }
+  }
+  balloonState.balloons = balloonState.balloons.filter((b) => !b.popped);
+}
+
+function popBalloon(id) {
+  if (!balloonState) return;
+  const b = balloonState.balloons.find((x) => x.id === id);
+  if (!b || b.popped) return;
+  b.popped = true;
+  b.el.classList.add("popped");
+  vibrate(b.isBee ? 20 : 10);
+  if (b.isBee) {
+    balloonState.score = Math.max(0, balloonState.score - 2);
+    showToast("🐝 Autsch, das war eine Biene!");
+  } else {
+    balloonState.score++;
+  }
+  gameScoreEl.classList.remove("pulse");
+  void gameScoreEl.offsetWidth;
+  gameScoreEl.classList.add("pulse");
+  gameScoreEl.textContent = "Punkte: " + balloonState.score;
+  setTimeout(() => {
+    b.el.remove();
+    // Spiel könnte in der Zwischenzeit geschlossen worden sein (stopBalloonGame
+    // setzt balloonState dann auf null) - in dem Fall nichts mehr tun.
+    if (balloonState) balloonState.balloons = balloonState.balloons.filter((x) => x.id !== id);
+  }, 260);
+}
+
+function finishBalloonGame() {
+  clearInterval(balloonTimerInterval);
+  clearTimeout(balloonSpawnTimeout);
+  if (balloonRafId) cancelAnimationFrame(balloonRafId);
+  balloonRafId = null;
+  const score = balloonState ? balloonState.score : 0;
+  balloonState = null;
+  document.getElementById("balloonArea").innerHTML = "";
+  const funGain = Math.min(30, Math.max(0, score * 2));
+  showResult("Punkte: " + score, funGain, 0);
+}
+
+function stopBalloonGame() {
+  clearInterval(balloonTimerInterval);
+  clearTimeout(balloonSpawnTimeout);
+  if (balloonRafId) cancelAnimationFrame(balloonRafId);
+  balloonRafId = null;
+  balloonState = null;
+  document.getElementById("balloonArea").innerHTML = "";
+}
 
 /* ---- Spiel 4: Figuren-Memory (generische Spielzeug-Icons, keine Marken) ---- */
 const MEMORY_ICONS = ["🚀", "🤠", "🐷", "🐮", "🐔", "🚂"];

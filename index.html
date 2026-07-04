@@ -6,6 +6,9 @@
 <title>Summi – Bärchen-Pflege 🧸</title>
 <meta name="theme-color" content="#F4A6A6" />
 <meta name="description" content="Kümmere dich um deinen kleinen Teddybären – füttern, waschen, spielen!" />
+<!-- Verhindert, dass Android/Chrome die selbst gewählten Pastellfarben
+     automatisch "eindunkelt"/invertiert (Force-Dark für Web-Inhalte). -->
+<meta name="color-scheme" content="light" />
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
@@ -222,10 +225,10 @@
           <path d="M 186 70 Q 214 70 218 82 Q 196 84 184 78 Z" fill="#5FA3A8"/>
         </g>
         <g id="accessoryFlower" class="accessory hidden-acc">
-          <circle cx="112" cy="86" r="5" fill="#F26D9B"/>
-          <circle cx="120" cy="80" r="5" fill="#FFA6C1"/>
-          <circle cx="122" cy="90" r="5" fill="#FFA6C1"/>
-          <circle cx="116" cy="86" r="4" fill="#FFD97D"/>
+          <circle cx="75" cy="50" r="5" fill="#F26D9B"/>
+          <circle cx="83" cy="44" r="5" fill="#FFA6C1"/>
+          <circle cx="85" cy="54" r="5" fill="#FFA6C1"/>
+          <circle cx="79" cy="50" r="4" fill="#FFD97D"/>
         </g>
       </svg>
 
@@ -336,6 +339,7 @@
       <div class="chase-area hidden" id="chaseArea">
         <button class="chase-target" id="chaseTarget">🍓</button>
       </div>
+      <div class="balloon-area hidden" id="balloonArea"></div>
       <div class="simon-grid hidden" id="simonGrid">
         <button class="simon-pad" data-pad="0" style="--pad-color:#FFB3A7">🍓</button>
         <button class="simon-pad" data-pad="1" style="--pad-color:#FFE08A">🎈</button>
