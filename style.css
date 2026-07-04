@@ -1619,6 +1619,64 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   100%{ transform: scale(1) rotateY(0deg); opacity: 1; }
 }
 
+/* ===== Booster-Pack-Öffnungsanimation ===== */
+.booster-opening-stage{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 10px;
+}
+.booster-opening-pack{
+  position: relative;
+  width: 130px;
+  aspect-ratio: 2 / 3;
+  border-radius: 16px;
+  border: 3px solid rgba(255,255,255,0.6);
+  box-shadow: 0 12px 26px rgba(80,50,40,0.32);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.booster-opening-pack img{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+.booster-opening-name{
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  text-align: center;
+  padding: 6px 4px;
+  background: rgba(0,0,0,0.3);
+}
+.booster-opening-pack.shake{ animation: packShake 0.9s ease-in-out; }
+@keyframes packShake{
+  0%, 100%{ transform: rotate(0deg) scale(1); }
+  15%{ transform: rotate(-6deg) scale(1.02); }
+  30%{ transform: rotate(6deg) scale(1.02); }
+  45%{ transform: rotate(-8deg) scale(1.04); }
+  60%{ transform: rotate(8deg) scale(1.04); }
+  75%{ transform: rotate(-5deg) scale(1.06); }
+  90%{ transform: rotate(4deg) scale(1.08); }
+}
+.booster-opening-pack.burst{ animation: packBurst 0.5s ease forwards; }
+@keyframes packBurst{
+  0%{ transform: scale(1.08); opacity: 1; filter: brightness(1); }
+  40%{ transform: scale(1.35); opacity: 1; filter: brightness(2.2); }
+  100%{ transform: scale(1.7); opacity: 0; filter: brightness(2.5); }
+}
+.booster-opening-stage.hidden{ display: none; }
+
 /* ===== Tägliches Glücksrad ===== */
 .wheel-box{ text-align: center; margin-top: 10px; }
 .wheel-wrap{
