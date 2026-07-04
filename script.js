@@ -1496,6 +1496,8 @@ const CARD_POOL = [
   { id: "p20", name: "Schlummerstunde", img: "photos/photo20.jpg", rarity: "ultra" },
 ];
 
+// Mehrere unterschiedliche Pack-Varianten (eigenes Thema, Cover-Foto und
+// Farbe je Pack) - wie ein Regal mit verschiedenen Sammelkarten-Editionen.
 const BOOSTER_PACKS = [
   {
     id: "basic",
@@ -1520,6 +1522,54 @@ const BOOSTER_PACKS = [
     boosted: true,
     coverImg: "photos/photo17.jpg",
     gradient: "linear-gradient(160deg,#C79AF0,#8F5FD1)",
+  },
+  {
+    id: "adventure",
+    name: "Abenteuer-Zeit",
+    subtitle: "Abenteuer-Pack",
+    desc: "3 zufällige Karten",
+    cost: 55,
+    currency: "coins",
+    cardCount: 3,
+    boosted: false,
+    coverImg: "photos/photo11.jpg",
+    gradient: "linear-gradient(160deg,#A9CC8C,#6E9A56)",
+  },
+  {
+    id: "sunny",
+    name: "Strand & Sonne",
+    subtitle: "Sommer-Pack",
+    desc: "3 zufällige Karten",
+    cost: 60,
+    currency: "coins",
+    cardCount: 3,
+    boosted: false,
+    coverImg: "photos/photo6.jpg",
+    gradient: "linear-gradient(160deg,#FFD97D,#F2A65A)",
+  },
+  {
+    id: "kitchen",
+    name: "Kuschel-Küche",
+    subtitle: "Leckerbissen-Pack",
+    desc: "3 zufällige Karten",
+    cost: 45,
+    currency: "coins",
+    cardCount: 3,
+    boosted: false,
+    coverImg: "photos/photo9.jpg",
+    gradient: "linear-gradient(160deg,#F4A6A6,#E2564F)",
+  },
+  {
+    id: "dream",
+    name: "Traumreise",
+    subtitle: "Nacht-Pack",
+    desc: "3 Karten, bessere Chance auf Seltenes!",
+    cost: 20,
+    currency: "strawberries",
+    cardCount: 3,
+    boosted: true,
+    coverImg: "photos/photo20.jpg",
+    gradient: "linear-gradient(160deg,#7B8FD1,#4A5A9E)",
   },
 ];
 
@@ -1588,8 +1638,49 @@ function openBoosterPack(packId) {
   saveState();
   renderShop();
   checkAchievements();
-  showBoosterReveal(drawnCards);
+  showBoosterOpeningAnimation(pack, drawnCards);
   vibrate(25);
+}
+
+// Zeigt zuerst eine kurze "Öffnungs-Animation" (Pack zittert und platzt
+// auf) und erst DANACH das Karten-Reveal - man weiß also bis zum
+// Aufplatzen nicht, was man gezogen hat.
+let boosterAnimTimeouts = [];
+function showBoosterOpeningAnimation(pack, cards) {
+  clearBoosterAnimTimeouts();
+  const overlayEl = document.getElementById("boosterOpenOverlay");
+  const stage = document.getElementById("boosterOpeningStage");
+  const packEl = document.getElementById("boosterOpeningPack");
+  const revealSection = document.getElementById("boosterRevealSection");
+  const doneBtn = document.getElementById("boosterRevealDoneBtn");
+
+  packEl.style.background = pack.gradient;
+  packEl.innerHTML = `<img src="${pack.coverImg}" alt=""><div class="booster-opening-name">${pack.name}</div>`;
+  packEl.className = "booster-opening-pack";
+  document.getElementById("boosterOpeningHint").textContent = "Wird geöffnet ...";
+
+  stage.classList.remove("hidden");
+  revealSection.classList.add("hidden");
+  doneBtn.classList.add("hidden");
+  overlayEl.classList.remove("hidden");
+
+  void packEl.offsetWidth; // Reflow erzwingen, damit die Animation sicher (neu) startet
+  packEl.classList.add("shake");
+
+  boosterAnimTimeouts.push(setTimeout(() => {
+    packEl.classList.add("burst");
+    vibrate(35);
+  }, 900));
+
+  boosterAnimTimeouts.push(setTimeout(() => {
+    stage.classList.add("hidden");
+    showBoosterReveal(cards);
+  }, 1450));
+}
+
+function clearBoosterAnimTimeouts() {
+  boosterAnimTimeouts.forEach(clearTimeout);
+  boosterAnimTimeouts = [];
 }
 
 function showBoosterReveal(cards) {
@@ -1597,10 +1688,13 @@ function showBoosterReveal(cards) {
   grid.innerHTML = cards
     .map((card, i) => cardTileHtml(card, { forceShow: true, reveal: true, delay: i * 0.15 }))
     .join("");
+  document.getElementById("boosterRevealSection").classList.remove("hidden");
+  document.getElementById("boosterRevealDoneBtn").classList.remove("hidden");
   document.getElementById("boosterOpenOverlay").classList.remove("hidden");
 }
 
 function closeBoosterReveal() {
+  clearBoosterAnimTimeouts();
   document.getElementById("boosterOpenOverlay").classList.add("hidden");
 }
 
@@ -1810,7 +1904,7 @@ function grantWheelPrize(prize) {
       state.cards[card.id] = (state.cards[card.id] || 0) + 1;
       drawn.push(card);
     }
-    setTimeout(() => showBoosterReveal(drawn), 600);
+    setTimeout(() => showBoosterOpeningAnimation(pack, drawn), 600);
     return "ein Booster-Pack";
   }
   return "";

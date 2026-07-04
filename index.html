@@ -552,13 +552,23 @@
   </div>
 </div>
 
-<!-- ===== Booster-Pack öffnen (Reveal-Overlay) ===== -->
+<!-- ===== Booster-Pack öffnen (Öffnungsanimation + Reveal-Overlay) ===== -->
 <div class="overlay hidden" id="boosterOpenOverlay">
   <div class="overlay-panel">
     <button class="overlay-close" id="boosterOpenClose" aria-label="Schließen">✕</button>
-    <h2 class="album-title">🎴 Neue Karten!</h2>
-    <div class="booster-reveal-grid" id="boosterRevealGrid"></div>
-    <button class="primary-btn" id="boosterRevealDoneBtn" style="margin-top:14px;">Super!</button>
+
+    <!-- Öffnungs-Animation: Pack zittert und platzt auf -->
+    <div class="booster-opening-stage" id="boosterOpeningStage">
+      <div class="booster-opening-pack" id="boosterOpeningPack"></div>
+      <p class="game-hint" id="boosterOpeningHint">Wird geöffnet ...</p>
+    </div>
+
+    <!-- Karten-Reveal, erscheint nach der Öffnungs-Animation -->
+    <div id="boosterRevealSection" class="hidden">
+      <h2 class="album-title">🎴 Neue Karten!</h2>
+      <div class="booster-reveal-grid" id="boosterRevealGrid"></div>
+      <button class="primary-btn hidden" id="boosterRevealDoneBtn" style="margin-top:14px;">Super!</button>
+    </div>
   </div>
 </div>
 
