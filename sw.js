@@ -4,13 +4,15 @@
 // nach der allerersten Installation IMMER die alte, zwischengespeicherte
 // Version ausgeliefert wurde – auch nachdem die App längst aktualisiert war.
 // Das war die Ursache dafür, dass Fixes auf dem Handy nicht ankamen.
-const CACHE_NAME = "baerchen-cache-v7"; // Version erhöht, damit alte Caches verworfen werden
+const CACHE_NAME = "baerchen-cache-v8"; // Version erhöht, damit alte Caches verworfen werden
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
   "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
   "./coin_gold_bear.png"
 ];
 
