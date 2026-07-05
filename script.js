@@ -51,7 +51,7 @@ const DECAY = {
 
 const MAX_CATCHUP_SECONDS = 3 * 60 * 60; // max. 3h "Abwesenheits-Verfall" nachholen
 const REVIVE_COST = 10; // so viele 🍓 werden zum Wiederbeleben gebraucht
-const PHOTO_COUNT = 19; // Anzahl der Fotos im Album
+const PHOTO_COUNT = 18; // Anzahl der Fotos im Album (photo13.jpg entfernt)
 
 // ===== LEVEL- & ALTERSSYSTEM (konfigurierbar) =====
 // Pflege-Punkte pro Aktion (frei anpassbar):
@@ -1014,9 +1014,13 @@ function reviveSummi() {
 //   { src: "photos/photo20.jpg", cost: 45 },
 // oder als seltenes Spezial-Bild:
 //   { src: "photos/special-urlaub.jpg", cost: 80, special: true },
-const PHOTOS = Array.from({ length: PHOTO_COUNT }, (_, i) => ({
-  src: `photos/photo${i + 1}.jpg`,
-  cost: 4 + i * 3, // steigender Preis: Foto 1 = 4 🍓, Foto 19 = 58 🍓
+// photo13.jpg wurde entfernt (zeigte ein Gesicht) - daher hier bewusst
+// keine einfache 1..PHOTO_COUNT-Zählung, sondern eine explizite Liste
+// der tatsächlich vorhandenen Dateinummern.
+const PHOTO_FILE_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19];
+const PHOTOS = PHOTO_FILE_NUMBERS.map((n, i) => ({
+  src: `photos/photo${n}.jpg`,
+  cost: 4 + i * 3, // steigender Preis
   special: false,
 }));
 // Die letzten beiden Fotos als seltene, besonders teure "Spezial-Bilder" markieren:
@@ -1486,7 +1490,6 @@ const CARD_POOL = [
   { id: "p10", name: "Ausgeruht", img: "photos/photo10.jpg", rarity: "common" },
   { id: "p11", name: "Abenteuerlustig", img: "photos/photo11.jpg", rarity: "rare" },
   { id: "p12", name: "Verträumt", img: "photos/photo12.jpg", rarity: "rare" },
-  { id: "p13", name: "Strahlend", img: "photos/photo13.jpg", rarity: "rare" },
   { id: "p14", name: "Herzlich", img: "photos/photo14.jpg", rarity: "rare" },
   { id: "p15", name: "Charmant", img: "photos/photo15.jpg", rarity: "rare" },
   { id: "p16", name: "Bezaubernd", img: "photos/photo16.jpg", rarity: "rare" },
