@@ -9,11 +9,6 @@
 // neue Version noch nicht geladen (Cache-Problem) statt eines echten Bugs.
 const BUILD_ID = "build-15";
 
-/* ---------------------------------------------------------------------
-   0) GLOBALER FEHLER-FÄNGER (Diagnose)
-   Zeigt JavaScript-Fehler direkt als Toast an, damit man Probleme auch
-   ohne Entwicklertools (z. B. auf dem Handy) sehen und melden kann.
---------------------------------------------------------------------- */
 window.addEventListener("error", (e) => {
   console.error("Globaler Fehler:", e.error || e.message);
   showFatalToast("JS-Fehler: " + (e.message || "unbekannt") + " (Zeile " + e.lineno + ")");
@@ -24,11 +19,10 @@ window.addEventListener("unhandledrejection", (e) => {
 });
 function showFatalToast(msg) {
   const t = document.getElementById("toast");
-  if (!t) return alert(msg); // Falls Toast-Element selbst fehlt
+  if (!t) return alert(msg);
   t.textContent = "⚠️ " + msg;
   t.classList.add("show");
   t.style.background = "#B5504A";
-  // Fehler-Toast bleibt länger stehen als normale Hinweise
   clearTimeout(window.__fatalToastTimeout);
   window.__fatalToastTimeout = setTimeout(() => {
     t.classList.remove("show");
@@ -36,9 +30,6 @@ function showFatalToast(msg) {
   }, 8000);
 }
 
-/* ---------------------------------------------------------------------
-   1) ZUSTAND & KONSTANTEN
---------------------------------------------------------------------- */
 const STORAGE_KEY = "baerchenState_v1";
 
 const DECAY = {
@@ -312,7 +303,7 @@ function renderDirt() {
     for (let i = 0; i < flyCount; i++) {
       const fly = document.createElement("div");
       fly.className = "fly";
-      fly.textContent = "🦩";
+      fly.textContent = "🪰";
       fly.style.left = 20 + Math.random() * 60 + "%";
       fly.style.top = 5 + Math.random() * 55 + "%";
       fly.style.animationDelay = Math.random() * 2 + "s";
@@ -942,7 +933,7 @@ const TOYS = [
   { id: "ball", emoji: "⚽", name: "Spielball", desc: "Zum Kicken und Werfen", cost: 25, funGain: 12 },
   { id: "yoyo", emoji: "🪀", name: "Jo-Jo", desc: "Für flinke Tricks", cost: 20, funGain: 10 },
   { id: "kite", emoji: "🪁", name: "Drachen", desc: "Steigt hoch in den Wind", cost: 55, funGain: 22 },
-  { id: "blocks", emoji: "🧩", name: "Bauklötze", desc: "Zum Türme bauen und Knobeln", cost: 45, funGain: 18 },
+  { id: "blocks", emoji: "🧩", name: "Bauklötze", desc: "Zum Türme bauen und Knobeln", cost: 45, funGain: 18 },
   { id: "duck", emoji: "🦆", name: "Quietsche-Ente", desc: "Süße Ente zum Quietschen", cost: 20, funGain: 10 },
   { id: "doll", emoji: "🪆", name: "Puppe", desc: "Zum Herzen und Wiegen", cost: 65, funGain: 26 },
   { id: "dollcar", emoji: "🚗", name: "Puppenauto", desc: "Zum Herumfahren und Schieben", cost: 50, funGain: 20 },
