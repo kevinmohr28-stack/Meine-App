@@ -1102,19 +1102,22 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
 /* ===== Shop-Tabs (Spielzeug / Kleidung) ===== */
 .shop-tabs{
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 10px 0 6px;
 }
 .shop-tab{
-  flex: 1;
-  padding: 10px 6px;
+  flex: 1 1 auto;
+  min-width: 72px;
+  padding: 9px 5px;
   border: none;
   border-radius: var(--radius-md);
   background: #F1E5DC;
   color: var(--brown-light);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 .shop-tab.active{
   background: linear-gradient(160deg, var(--pink), var(--pink-dark));
