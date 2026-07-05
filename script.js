@@ -427,7 +427,6 @@ function renderAll() {
   renderStrawberries();
   renderActionLock();
   renderLevelAge();
-  renderToyTray();
 }
 
 /* ---------------------------------------------------------------------
@@ -627,7 +626,6 @@ function wash() {
 }
 
 function petBear() {
-  if (toyPlayState) return tapToyPlay();
   if (state.isDead) return showToast("😵 Summi ist ohnmächtig – sammle 🍓 zum Wiederbeleben!");
   if (isWorking) return showToast("💼 Summi arbeitet gerade und darf nicht gestört werden!");
   if (isSleeping) {
@@ -1032,6 +1030,9 @@ const TOYS = [
   { id: "yoyo", emoji: "🪀", name: "Jo-Jo", desc: "Für flinke Tricks", cost: 20, funGain: 10 },
   { id: "kite", emoji: "🪁", name: "Drachen", desc: "Steigt hoch in den Wind", cost: 55, funGain: 22 },
   { id: "blocks", emoji: "🧩", name: "Bauklötze", desc: "Zum Türme bauen und Knobeln", cost: 45, funGain: 18 },
+  { id: "duck", emoji: "🦆", name: "Quietsche-Ente", desc: "Süße Ente zum Quietschen", cost: 20, funGain: 10 },
+  { id: "doll", emoji: "🪆", name: "Puppe", desc: "Zum Herzen und Wiegen", cost: 65, funGain: 26 },
+  { id: "dollcar", emoji: "🚗", name: "Puppenauto", desc: "Zum Herumfahren und Schieben", cost: 50, funGain: 20 },
 ];
 
 // Anziehbare Kleidung/Accessoires. "slot" bestimmt, welches SVG-Overlay
@@ -1301,14 +1302,21 @@ document.getElementById("shopTabClothes").addEventListener("click", () => setSho
 /* ---------------------------------------------------------------------
    7f) MIT SPIELZEUG SPIELEN (direkt am Bären auf der Startseite, statt in
    einem separaten Popup — Summi nimmt das Spielzeug sichtbar in die Hand
-   und jedes Spielzeug hat seine eigene Animation)
+   und spielt danach ganz von selbst damit, mit einer zum Spielzeug
+   passenden Animation. Die Auswahl liegt im "Spielen"-Menü, damit sie
+   nicht dauerhaft auf der Startseite herumsteht, sondern nur erscheint,
+   wenn man sie wirklich braucht.)
 --------------------------------------------------------------------- */
-const toyTrayEl = document.getElementById("toyTray");
-const TOY_PLAY_DURATION = 6; // Sekunden
-let toyPlayState = null; // { id, taps, timeLeft }
-let toyPlayTimerInterval = null;
+const toyMenuSection = document.getElementById("toyMenuSection");
+const toyMenuList = document.getElementById("toyMenuList");
+const TOY_PLAY_DURATION = 4.5; // Sekunden, in denen Summi selbständig spielt
+let toyPlayState = null; // { id }
+let toyPlayTimeout = null;
 
-// Jedes Spielzeug bekommt seine eigene CSS-Animationsklasse fürs Halten.
+// Jedes Spielzeug bekommt seine eigene CSS-Animationsklasse fürs Halten,
+// dazu eine "Haltungsart" (hand/hug/ground), damit die Arme/Position logisch
+// zum Spielzeug passen (z.B. ein Ball gehört an den Fuß, kein Kuscheltier
+// wird in der Hand gehalten wie ein Ball).
 const TOY_ANIM_CLASS = {
   piglet: "toy-anim-cuddle",
   cowboy: "toy-anim-gallop",
@@ -1317,22 +1325,41 @@ const TOY_ANIM_CLASS = {
   yoyo: "toy-anim-yoyo",
   kite: "toy-anim-kite",
   blocks: "toy-anim-blocks",
+  duck: "toy-anim-duck",
+  doll: "toy-anim-cuddle",
+  dollcar: "toy-anim-car",
+};
+const TOY_HOLD_CLASS = {
+  piglet: "playing-toy-hug",
+  cowboy: "playing-toy-hand",
+  plush: "playing-toy-hug",
+  ball: "playing-toy-ground",
+  yoyo: "playing-toy-hand",
+  kite: "playing-toy-hand",
+  blocks: "playing-toy-hand",
+  duck: "playing-toy-hand",
+  doll: "playing-toy-hug",
+  dollcar: "playing-toy-ground",
 };
 
-function renderToyTray() {
-  if (!toyTrayEl) return;
+// Füllt die Spielzeug-Auswahl im "Spielen"-Menü (nur sichtbar, solange das
+// Menü offen ist — nicht dauerhaft auf der Startseite).
+function renderToyMenu() {
+  if (!toyMenuSection) return;
   const owned = TOYS.filter((t) => state.toys[t.id] > 0);
-  if (owned.length === 0 || toyPlayState) {
-    toyTrayEl.classList.add("hidden");
-    toyTrayEl.innerHTML = "";
+  if (owned.length === 0) {
+    toyMenuSection.classList.add("hidden");
     return;
   }
-  toyTrayEl.classList.remove("hidden");
-  toyTrayEl.innerHTML = owned
+  toyMenuSection.classList.remove("hidden");
+  toyMenuList.innerHTML = owned
     .map((t) => `<button class="toy-tray-btn" data-toy="${t.id}" title="Mit ${t.name} spielen">${t.emoji}</button>`)
     .join("");
-  toyTrayEl.querySelectorAll(".toy-tray-btn").forEach((btn) => {
-    btn.addEventListener("click", () => startToyPlay(btn.dataset.toy));
+  toyMenuList.querySelectorAll(".toy-tray-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      closeGameOverlay();
+      startToyPlay(btn.dataset.toy);
+    });
   });
 }
 
@@ -1342,62 +1369,50 @@ function startToyPlay(id) {
   if (actionsBlocked()) return;
 
   registerInteraction();
-  toyPlayState = { id, taps: 0, timeLeft: TOY_PLAY_DURATION };
+  toyPlayState = { id };
+  renderActionLock(); // andere Aktionen sofort sperren, solange Summi spielt
 
   const animClass = TOY_ANIM_CLASS[id] || "toy-anim-ball";
+  const holdClass = TOY_HOLD_CLASS[id] || "playing-toy-hand";
   el.heldToy.textContent = toy.emoji;
   el.heldToy.className = "held-toy " + animClass;
-  el.bearWrap.classList.add("playing-toy");
+  el.bearWrap.classList.remove("playing-toy-hand", "playing-toy-hug", "playing-toy-ground");
+  el.bearWrap.classList.add("playing-toy", holdClass);
 
-  el.toyPlayLabel.textContent = toy.emoji + " Spielt mit " + toy.name;
-  el.toyPlayFill.style.width = "0%";
+  el.toyPlayLabel.textContent = toy.emoji + " Spielt selbständig mit " + toy.name;
   el.toyPlayBanner.classList.remove("hidden");
-  renderToyTray(); // Tray während des Spielens ausblenden
+  // Füllbalken läuft rein per CSS-Transition automatisch durch, kein Antippen nötig.
+  el.toyPlayFill.style.transition = "none";
+  el.toyPlayFill.style.width = "0%";
+  void el.toyPlayFill.offsetWidth; // Reflow erzwingen, damit die Transition neu startet
+  el.toyPlayFill.style.transition = "width " + TOY_PLAY_DURATION + "s linear";
+  el.toyPlayFill.style.width = "100%";
 
-  clearInterval(toyPlayTimerInterval);
-  toyPlayTimerInterval = setInterval(() => {
-    if (!toyPlayState) return;
-    toyPlayState.timeLeft -= 1;
-    if (toyPlayState.timeLeft <= 0) finishToyPlay();
-  }, 1000);
-}
-
-// Wird beim Antippen des Bären aufgerufen, solange ein Spielzeug aktiv ist
-// (petBear() leitet währenddessen hierher um, statt normal zu streicheln).
-function tapToyPlay() {
-  if (!toyPlayState) return;
-  toyPlayState.taps++;
-  const pct = Math.min(100, (toyPlayState.taps / 18) * 100);
-  el.toyPlayFill.style.width = pct + "%";
-  wiggleBear();
-  const toy = TOYS.find((t) => t.id === toyPlayState.id);
-  if (toy && toyPlayState.taps % 3 === 0) spawnParticles(toy.emoji, 2);
-  vibrate(8);
+  clearTimeout(toyPlayTimeout);
+  toyPlayTimeout = setTimeout(finishToyPlay, TOY_PLAY_DURATION * 1000);
 }
 
 function finishToyPlay() {
-  clearInterval(toyPlayTimerInterval);
+  clearTimeout(toyPlayTimeout);
   if (!toyPlayState) return;
   const toy = TOYS.find((t) => t.id === toyPlayState.id);
-  const taps = toyPlayState.taps;
   toyPlayState = null;
 
-  el.bearWrap.classList.remove("playing-toy");
+  el.bearWrap.classList.remove("playing-toy", "playing-toy-hand", "playing-toy-hug", "playing-toy-ground");
   el.heldToy.classList.add("hidden");
   el.toyPlayBanner.classList.add("hidden");
-  renderToyTray();
   if (!toy) return;
 
-  const funGain = clamp(Math.min(30, 8 + taps * 1.3));
-  const loveGain = clamp(Math.min(15, 3 + taps * 0.4));
+  const funGain = toy.funGain;
+  const loveGain = 6;
   state.fun = clamp(state.fun + funGain);
   state.love = clamp(state.love + loveGain);
   addCarePoints(CARE_POINTS.play * 0.5);
   spawnParticles("✨", 4);
   if (toy.id === "cowboy") {
-    showToast("🤠 Da bist du ja! Summi hat seinen Cowboy-Freund so vermisst! (+" + Math.round(funGain) + " 🎈)");
+    showToast("🤠 Da bist du ja! Summi hat seinen Cowboy-Freund so vermisst! (+" + funGain + " 🎈)");
   } else {
-    showToast(toy.emoji + " Summi hatte riesigen Spaß mit " + toy.name + "! (+" + Math.round(funGain) + " 🎈)");
+    showToast(toy.emoji + " Summi hatte riesigen Spaß mit " + toy.name + "! (+" + funGain + " 🎈)");
   }
   vibrate(30);
   registerInteraction(true);
@@ -2082,6 +2097,7 @@ function showMenu() {
   gameMenu.classList.remove("hidden");
   gameScreen.classList.add("hidden");
   gameResult.classList.add("hidden");
+  renderToyMenu();
 }
 
 function startGame(key) {
