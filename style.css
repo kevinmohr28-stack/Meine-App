@@ -7,7 +7,7 @@
   /* Erzwingt helles Farbschema, auch wenn das Handy im Dark-Mode läuft.
      Ohne das invertieren/verdunkeln manche Android-Browser eigenmächtig
      alle Farben der Seite ("Force Dark"), was das Design zerstört. */
-  color-scheme: light;
+  color-scheme: only light;
 
   --bg-top: #FDF3EC;
   --bg-bottom: #F6E6DD;
