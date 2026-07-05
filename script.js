@@ -1476,7 +1476,7 @@ const BOOSTER_PACKS = [
     currency: "coins",
     cardCount: 3,
     boosted: false,
-    coverImg: "photos/photo1.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#7FB3B8,#5FA3A8)",
   },
   {
@@ -1488,7 +1488,7 @@ const BOOSTER_PACKS = [
     currency: "strawberries",
     cardCount: 3,
     boosted: true,
-    coverImg: "photos/photo17.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#C79AF0,#8F5FD1)",
   },
   {
@@ -1500,7 +1500,7 @@ const BOOSTER_PACKS = [
     currency: "coins",
     cardCount: 3,
     boosted: false,
-    coverImg: "photos/photo11.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#A9CC8C,#6E9A56)",
   },
   {
@@ -1512,7 +1512,7 @@ const BOOSTER_PACKS = [
     currency: "coins",
     cardCount: 3,
     boosted: false,
-    coverImg: "photos/photo6.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#FFD97D,#F2A65A)",
   },
   {
@@ -1524,7 +1524,7 @@ const BOOSTER_PACKS = [
     currency: "coins",
     cardCount: 3,
     boosted: false,
-    coverImg: "photos/photo9.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#F4A6A6,#E2564F)",
   },
   {
@@ -1536,7 +1536,7 @@ const BOOSTER_PACKS = [
     currency: "strawberries",
     cardCount: 3,
     boosted: true,
-    coverImg: "photos/photo20.jpg",
+    coverImg: "pack-cover.jpg",
     gradient: "linear-gradient(160deg,#7B8FD1,#4A5A9E)",
   },
 ];
