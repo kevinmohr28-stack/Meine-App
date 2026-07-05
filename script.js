@@ -80,6 +80,8 @@ let state = {
   cards: {},
   wheel: { lastSpin: null },
   effects: { cleanBoostUntil: 0, hungerBoostUntil: 0, wakeBoostUntil: 0, sickImmuneUntil: 0, luckyClover: false },
+  isOnVacation: false,
+  vacationEndsAt: 0,
   lastSave: Date.now(),
 };
 
@@ -116,6 +118,14 @@ function loadState() {
         if (typeof state.effects[key] !== "number") state.effects[key] = 0;
       }
       if (typeof state.effects.luckyClover !== "boolean") state.effects.luckyClover = false;
+      if (typeof state.isOnVacation !== "boolean") state.isOnVacation = false;
+      if (typeof state.vacationEndsAt !== "number") state.vacationEndsAt = 0;
+      if (state.isOnVacation && Date.now() >= state.vacationEndsAt) {
+        // Der Urlaub ist zu Ende gegangen, während die App geschlossen war –
+        // einfach still zurückbuchen, ohne die Flug-Animation nachzuholen.
+        state.isOnVacation = false;
+        state.vacationEndsAt = 0;
+      }
       if (!state.isDead) {
         const elapsedSec = Math.min(
           (Date.now() - (state.lastSave || Date.now())) / 1000,
@@ -337,10 +347,10 @@ function renderStrawberries() {
 }
 
 function renderActionLock() {
-  const lockMost = state.isDead || isSleeping || isWorking || !!toyPlayState;
+  const lockMost = state.isDead || isSleeping || isWorking || !!toyPlayState || isFlightInProgress;
   el.actionButtons.forEach((btn) => {
     if (btn.id === "btnSleep") {
-      btn.classList.toggle("disabled", state.isDead || isWorking);
+      btn.classList.toggle("disabled", state.isDead || isWorking || isFlightInProgress);
     } else {
       btn.classList.toggle("disabled", lockMost);
     }
@@ -498,6 +508,10 @@ function actionsBlocked() {
   }
   if (toyPlayState) {
     showToast("🧸 Summi spielt gerade – lass ihn kurz fertig spielen!");
+    return true;
+  }
+  if (isFlightInProgress) {
+    showToast("✈️ Summi ist gerade im Flugzeug – gleich ist er da!");
     return true;
   }
   return false;
@@ -886,13 +900,15 @@ function applyDecay(seconds) {
   if (now >= state.effects.cleanBoostUntil) {
     state.clean = clamp(state.clean - DECAY.clean * seconds);
   }
-  state.fun = clamp(state.fun - DECAY.fun * seconds);
+  const funDecayRate = state.isOnVacation ? DECAY.fun / VACATION_BOOSTS.fun : DECAY.fun;
+  state.fun = clamp(state.fun - funDecayRate * seconds);
 
   const careAvg = (state.hunger + state.clean + state.fun) / 3;
   let loveRate;
   if (careAvg > 60) loveRate = 0.4;
   else if (careAvg < 30) loveRate = -1.3;
   else loveRate = -0.2;
+  if (state.isOnVacation) loveRate *= loveRate > 0 ? VACATION_BOOSTS.love : 1 / VACATION_BOOSTS.love;
   state.love = clamp(state.love + loveRate * seconds);
 
   checkDeath();
@@ -1008,6 +1024,7 @@ function setShopTab(tab) {
   document.getElementById("shopTabClothes").classList.toggle("active", tab === "clothes");
   document.getElementById("shopTabCards").classList.toggle("active", tab === "cards");
   document.getElementById("shopTabSpecial").classList.toggle("active", tab === "special");
+  document.getElementById("shopTabVacation").classList.toggle("active", tab === "vacation");
   shopTabHint.textContent =
     tab === "toys"
       ? "Kaufe Spielzeug für mehr Spaß! Coins bekommst du fürs Arbeiten und in Minispielen."
@@ -1015,9 +1032,11 @@ function setShopTab(tab) {
       ? "Kleide Summi ein! Getragene Sachen sieht man direkt am Bären."
       : tab === "special"
       ? "Besondere Artikel mit praktischen Extra-Effekten!"
+      : tab === "vacation"
+      ? "Schick Summi in den wohlverdienten Urlaub nach Thailand!"
       : "Öffne Booster-Packs und sammle alle Karten!";
   inventoryTitle.textContent =
-    tab === "toys" ? "🎒 Spielzeug-Inventar" : tab === "clothes" ? "🎒 Kleiderschrank" : tab === "special" ? "✨ Aktive Effekte" : "🎴 Deine Karten";
+    tab === "toys" ? "🎒 Spielzeug-Inventar" : tab === "clothes" ? "🎒 Kleiderschrank" : tab === "special" ? "✨ Aktive Effekte" : tab === "vacation" ? "🏖️ Urlaubsstatus" : "🎴 Deine Karten";
   renderShop();
 }
 
@@ -1028,6 +1047,8 @@ function renderShop() {
     renderSpecialShop();
   } else if (shopActiveTab === "cards") {
     renderCardsShop();
+  } else if (shopActiveTab === "vacation") {
+    renderVacationShop();
   } else {
     renderToyShop();
   }
@@ -1272,6 +1293,151 @@ function buySpecialItem(id) {
   renderShop();
 }
 
+// =====================================================================
+// Urlaubsflug nach Thailand
+// =====================================================================
+const VACATION_TICKET_COST = 150;
+const VACATION_DURATION_MS = 17 * 60 * 1000; // 15–20 Minuten Urlaub
+const FLIGHT_DURATION_MS = 9000; // Hin- bzw. Rückflug dauert ca. 9 Sekunden
+const VACATION_RETURN_REWARD = 10; // Coins bei der Rückkehr
+const VACATION_BOOSTS = { fun: 1.2, love: 1.15 };
+
+const beachBg = document.getElementById("beachBg");
+const vacationBadge = document.getElementById("vacationBadge");
+const vacationRemainingText = document.getElementById("vacationRemaining");
+const flightScene = document.getElementById("flightScene");
+const flightMessage = document.getElementById("flightMessage");
+const flightFill = document.getElementById("flightFill");
+
+let isFlightInProgress = false;
+let flightInterval = null;
+
+function renderVacationShop() {
+  shopList.className = "shop-list";
+  if (state.isOnVacation) {
+    const remainingMin = Math.max(0, Math.ceil((state.vacationEndsAt - Date.now()) / 60000));
+    shopList.innerHTML = `
+    <div class="shop-item">
+      <div class="shop-item-emoji">🏖️</div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Summi ist gerade im Urlaub!</div>
+        <div class="shop-item-desc">Noch ca. ${remainingMin} Min., dann kommt er von selbst zurück.</div>
+      </div>
+    </div>`;
+  } else {
+    shopList.innerHTML = `
+    <div class="shop-item">
+      <div class="shop-item-emoji">✈️</div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">Flugticket nach Thailand</div>
+        <div class="shop-item-desc">Summi entspannt ${Math.round(VACATION_DURATION_MS / 60000)} Minuten am Strand · mehr Spaß &amp; Liebe in der Zeit</div>
+      </div>
+      <button class="shop-buy-btn" id="vacationBuyBtn" ${state.coins < VACATION_TICKET_COST || isFlightInProgress ? "disabled" : ""}>
+        ${VACATION_TICKET_COST}<img src="coin_gold_bear.png" alt="Coins" class="coin-icon">
+      </button>
+    </div>`;
+    const btn = document.getElementById("vacationBuyBtn");
+    if (btn) btn.addEventListener("click", buyVacationTicket);
+  }
+  inventoryList.innerHTML = '<span class="inventory-empty">Buche einen Flug, damit Summi sich am Strand erholen kann.</span>';
+}
+
+function buyVacationTicket() {
+  if (isFlightInProgress || state.isOnVacation) return;
+  if (state.coins < VACATION_TICKET_COST) {
+    showToast("Noch nicht genug 🪙 Coins! Geh dafür arbeiten.");
+    return;
+  }
+  state.coins -= VACATION_TICKET_COST;
+  showToast("✈️ Flugticket gekauft – Summi macht sich auf den Weg nach Thailand!");
+  vibrate(20);
+  saveState();
+  closeShop();
+  startVacationFlight("outbound");
+}
+
+function startVacationFlight(direction) {
+  isFlightInProgress = true;
+  document.getElementById("stage").classList.add("flight-active");
+  flightMessage.textContent =
+    direction === "outbound"
+      ? "Summi🥰🥰🧸 fliegt in Urlaub! Bitte warten…"
+      : "Summi🥰🥰🧸 fliegt zurück nach Hause! Bitte warten…";
+  flightFill.style.width = "0%";
+  flightScene.classList.remove("hidden");
+  renderActionLock();
+
+  const startTime = performance.now();
+  clearInterval(flightInterval);
+  flightInterval = setInterval(() => {
+    const elapsed = performance.now() - startTime;
+    const pct = Math.min(100, (elapsed / FLIGHT_DURATION_MS) * 100);
+    flightFill.style.width = pct + "%";
+    if (elapsed >= FLIGHT_DURATION_MS) {
+      clearInterval(flightInterval);
+      flightScene.classList.add("hidden");
+      document.getElementById("stage").classList.remove("flight-active");
+      isFlightInProgress = false;
+      if (direction === "outbound") {
+        enterVacationMode();
+      } else {
+        finishReturnFromVacation();
+      }
+      renderActionLock();
+    }
+  }, 100);
+}
+
+function enterVacationMode() {
+  state.isOnVacation = true;
+  state.vacationEndsAt = Date.now() + VACATION_DURATION_MS;
+  applyVacationVisuals();
+  showToast("🏖️ Summi genießt seinen Urlaub am Strand von Thailand!");
+  spawnParticles("🌺", 4);
+  registerInteraction();
+  renderAll();
+  saveState();
+  if (shopActiveTab === "vacation") renderShop();
+}
+
+function finishReturnFromVacation() {
+  state.isOnVacation = false;
+  state.vacationEndsAt = 0;
+  state.coins += VACATION_RETURN_REWARD;
+  applyVacationVisuals();
+  showToast("🧳 Willkommen zurück! Summi ist erholt und hat +" + VACATION_RETURN_REWARD + " Coins mitgebracht.");
+  spawnParticles("✨", 4);
+  registerInteraction();
+  renderAll();
+  saveState();
+  if (shopActiveTab === "vacation") renderShop();
+}
+
+function applyVacationVisuals() {
+  el.bearWrap.classList.toggle("on-vacation", state.isOnVacation);
+  beachBg.classList.toggle("hidden", !state.isOnVacation);
+  vacationBadge.classList.toggle("hidden", !state.isOnVacation);
+  updateVacationBadge();
+}
+
+function updateVacationBadge() {
+  if (!state.isOnVacation) return;
+  const remainingMin = Math.max(0, Math.ceil((state.vacationEndsAt - Date.now()) / 60000));
+  vacationRemainingText.textContent = remainingMin;
+}
+
+function checkVacationTimer() {
+  if (state.isOnVacation && !isFlightInProgress) {
+    if (Date.now() >= state.vacationEndsAt) {
+      startVacationFlight("inbound");
+    } else {
+      updateVacationBadge();
+    }
+  }
+}
+
+document.getElementById("shopTabVacation").addEventListener("click", () => setShopTab("vacation"));
+
 document.getElementById("shopBtn").addEventListener("click", openShop);
 document.getElementById("shopClose").addEventListener("click", closeShop);
 document.getElementById("shopTabToys").addEventListener("click", () => setShopTab("toys"));
@@ -1387,6 +1553,7 @@ function finishToyPlay() {
 function startTickLoop() {
   setInterval(() => {
     applyDecay(1);
+    checkVacationTimer();
     renderAll();
   }, 1000);
 
@@ -3163,6 +3330,7 @@ console.log("Bärchen-Pflege gestartet –", BUILD_ID);
 loadState();
 renderAll();
 renderAccessories();
+applyVacationVisuals();
 saveState();
 startTickLoop();
 scheduleSpeech(true);
