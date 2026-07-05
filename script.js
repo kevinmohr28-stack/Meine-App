@@ -1587,12 +1587,14 @@ function cardTileHtml(card, options = {}) {
   }
   const countBadge = owned > 1 ? `<span class="card-count">×${owned}</span>` : "";
   const revealClass = options.reveal ? "reveal-in" : "";
+  const bigClass = options.big ? "card-tile-big" : "";
   const delay = options.delay ? `style="animation-delay:${options.delay}s"` : "";
+  const clickable = options.clickable ? `data-card-id="${card.id}" role="button" tabindex="0"` : "";
   const sparkles = card.rarity !== "common"
     ? `<span class="card-sparkle card-sparkle-tl">✨</span><span class="card-sparkle card-sparkle-bl">✨</span>`
     : "";
   return `
-    <div class="card-tile rarity-${card.rarity} ${revealClass}" ${delay}>
+    <div class="card-tile rarity-${card.rarity} ${revealClass} ${bigClass}" ${delay} ${clickable}>
       <div class="card-tile-inner">
         <div class="card-photo-wrap"><img src="${card.img}" alt="${card.name}" loading="lazy"></div>
         <span class="card-name">${card.name}</span>
@@ -1729,15 +1731,29 @@ function renderCardsShop() {
 
 function openCardAlbum() {
   const grid = document.getElementById("cardAlbumGrid");
-  grid.innerHTML = CARD_POOL.map((card) => cardTileHtml(card)).join("");
+  grid.innerHTML = CARD_POOL.map((card) => cardTileHtml(card, { clickable: !!state.cards[card.id] })).join("");
   const owned = CARD_POOL.filter((c) => state.cards[c.id] > 0).length;
   document.getElementById("cardAlbumProgress").textContent = owned + " / " + CARD_POOL.length + " Karten gesammelt";
   document.getElementById("cardAlbumOverlay").classList.remove("hidden");
+  grid.querySelectorAll(".card-tile[data-card-id]").forEach((tile) => {
+    tile.addEventListener("click", () => openCardDetail(tile.dataset.cardId));
+  });
 }
 
 document.getElementById("cardAlbumBtn").addEventListener("click", openCardAlbum);
 document.getElementById("cardAlbumClose").addEventListener("click", () => {
   document.getElementById("cardAlbumOverlay").classList.add("hidden");
+});
+
+// Vergrößerte Einzelansicht einer gesammelten Karte, aus dem Album antippbar.
+function openCardDetail(cardId) {
+  const card = CARD_POOL.find((c) => c.id === cardId);
+  if (!card || !state.cards[card.id]) return;
+  document.getElementById("cardDetailBig").innerHTML = cardTileHtml(card, { forceShow: true, big: true });
+  document.getElementById("cardDetailOverlay").classList.remove("hidden");
+}
+document.getElementById("cardDetailClose").addEventListener("click", () => {
+  document.getElementById("cardDetailOverlay").classList.add("hidden");
 });
 document.getElementById("boosterOpenClose").addEventListener("click", closeBoosterReveal);
 document.getElementById("boosterRevealDoneBtn").addEventListener("click", closeBoosterReveal);
