@@ -1233,12 +1233,24 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
 }
 
 /* ===== Spielzeug-Auswahl direkt auf der Startseite ===== */
+/* Eigenes Spielzeug im "Spielen"-Menü: erscheint nur, solange das Menü
+   offen ist, statt dauerhaft auf der Startseite herumzustehen. */
+.toy-menu-section{
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 2px dashed var(--line);
+}
+.toy-menu-section h2{
+  text-align: center;
+  margin: 4px 0 10px;
+  font-size: 1.02rem;
+}
 .toy-tray{
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  padding: 8px 12px 0;
+  padding: 0 12px;
 }
 .toy-tray-btn{
   width: 44px;
@@ -1253,13 +1265,12 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
 }
 .toy-tray-btn:active{ transform: scale(0.88); }
 
-/* Fortschrittsanzeige während Summi mit einem Spielzeug spielt */
+/* Fortschrittsanzeige, während Summi selbständig mit einem Spielzeug spielt */
 .toy-play-banner{
   text-align: center;
   padding: 6px 16px 2px;
 }
 .toy-play-label{ font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
-.toy-play-hint{ font-size: 0.75rem; color: var(--brown-light); margin: 4px 0 0; }
 .toy-play-bar{
   height: 12px;
   background: #EFE1D6;
@@ -1288,8 +1299,10 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   z-index: 5;
 }
 
-/* Summi reagiert generell fröhlich, während er spielt: sanftes Hüpfen +
-   der rechte Arm hebt sich sichtbar, als würde er das Spielzeug halten. */
+/* Summi reagiert generell fröhlich, während er spielt: sanftes Hüpfen.
+   Die Arme reagieren je nach Haltungsart des Spielzeugs unterschiedlich
+   (in der Hand halten / an die Brust drücken / am Boden lassen), damit es
+   zum jeweiligen Spielzeug passt statt immer gleich auszusehen. */
 .bear-wrap.playing-toy .bear-svg{
   animation: playHappyBounce 0.9s ease-in-out infinite;
 }
@@ -1297,19 +1310,63 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   0%, 100%{ transform: translateY(0) rotate(0deg); }
   50%{ transform: translateY(-6px) rotate(-2deg); }
 }
-.bear-wrap.playing-toy #armRight{
+/* Spielzeug in der Hand (Jo-Jo, Drachen, Bauklötze, Ente, Cowboy-Figur):
+   der rechte Arm hebt sich sichtbar. */
+.bear-wrap.playing-toy-hand #armRight{
   transform-box: fill-box;
   transform-origin: 50% 10%;
   transform: rotate(-30deg);
   transition: transform 0.25s ease;
 }
+/* Gekuscheltes Spielzeug (Ferkel, Puppe, XXL-Kuscheltier): beide Arme
+   drücken es an die Brust. */
+.bear-wrap.playing-toy-hug #armRight{
+  transform-box: fill-box;
+  transform-origin: 50% 10%;
+  transform: rotate(-22deg);
+  transition: transform 0.25s ease;
+}
+.bear-wrap.playing-toy-hug #armLeft{
+  transform-box: fill-box;
+  transform-origin: 50% 10%;
+  transform: rotate(22deg);
+  transition: transform 0.25s ease;
+}
+/* Spielzeug am Boden (Ball, Puppenauto): die Arme bleiben unten, gespielt
+   wird mit den Füßen. */
 
-/* Ball: hüpft auf und ab mit Stauch-Effekt */
-.held-toy.toy-anim-ball{ animation: toyBall 0.7s ease-in-out infinite; }
-@keyframes toyBall{
-  0%, 100%{ transform: translate(-50%, -50%) translateY(0) scale(1); }
-  45%{ transform: translate(-50%, -50%) translateY(-22px) scale(1.05, 0.95); }
-  60%{ transform: translate(-50%, -50%) translateY(0) scale(0.92, 1.1); }
+/* Ball: liegt am Fuß und wird von einem Fuß zum anderen gekickt */
+.held-toy.toy-anim-ball{
+  animation: toyBallKick 0.9s ease-in-out infinite;
+  left: 50%;
+  top: 88%;
+  font-size: 1.8rem;
+}
+@keyframes toyBallKick{
+  0%{ transform: translate(-50%, -50%) translateX(-26px) scale(1); }
+  25%{ transform: translate(-50%, -50%) translateX(-10px) translateY(-16px) scale(1.05, 0.95); }
+  50%{ transform: translate(-50%, -50%) translateX(0) scale(1); }
+  75%{ transform: translate(-50%, -50%) translateX(10px) translateY(-16px) scale(1.05, 0.95); }
+  100%{ transform: translate(-50%, -50%) translateX(26px) scale(1); }
+}
+
+/* Puppenauto: wird am Boden vor Summi hin- und hergeschoben */
+.held-toy.toy-anim-car{
+  animation: toyCarRoll 1.3s ease-in-out infinite;
+  left: 50%;
+  top: 90%;
+  font-size: 2rem;
+}
+@keyframes toyCarRoll{
+  0%, 100%{ transform: translate(-50%, -50%) translateX(-28px) rotate(-3deg); }
+  50%{ transform: translate(-50%, -50%) translateX(28px) rotate(3deg); }
+}
+
+/* Quietsche-Ente: wird in der Hand gedrückt und quietscht dabei */
+.held-toy.toy-anim-duck{ animation: toyDuck 0.6s ease-in-out infinite; }
+@keyframes toyDuck{
+  0%, 100%{ transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50%{ transform: translate(-50%, -50%) scale(1.12, 0.88) rotate(-6deg); }
 }
 
 /* Jo-Jo: schnellt an einer unsichtbaren Schnur runter und rauf, mit Dreh */
@@ -1351,8 +1408,13 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   50%{ transform: translate(-50%, -50%) scale(0.85); }
 }
 
-/* Ferkel: wird sanft im Arm gewiegt */
-.held-toy.toy-anim-cuddle{ animation: toyCuddle 1.4s ease-in-out infinite; }
+/* Ferkel & Puppe: werden sanft im Arm an der Brust gewiegt */
+.held-toy.toy-anim-cuddle{
+  animation: toyCuddle 1.4s ease-in-out infinite;
+  left: 50%;
+  top: 62%;
+  font-size: 2.2rem;
+}
 @keyframes toyCuddle{
   0%, 100%{ transform: translate(-50%, -50%) rotate(-10deg); }
   50%{ transform: translate(-50%, -50%) rotate(10deg); }

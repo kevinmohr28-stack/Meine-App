@@ -284,14 +284,10 @@
       <div class="work-bar"><div class="work-fill" id="workFill"></div></div>
     </div>
 
-    <!-- Spielzeug-Auswahl: gekaufte Spielzeuge direkt mit Summi auf der Startseite benutzen -->
-    <div class="toy-tray hidden" id="toyTray"></div>
-
-    <!-- Fortschrittsanzeige während des Spielens mit einem Spielzeug -->
+    <!-- Fortschrittsanzeige, während Summi selbständig mit einem Spielzeug spielt -->
     <div class="toy-play-banner hidden" id="toyPlayBanner">
       <div class="toy-play-label" id="toyPlayLabel">🧸 Spielt mit ...</div>
       <div class="toy-play-bar"><div class="toy-play-fill" id="toyPlayFill"></div></div>
-      <p class="toy-play-hint">Tippe schnell auf Summi!</p>
     </div>
   </main>
 
@@ -332,7 +328,12 @@
 
     <!-- Spielauswahl -->
     <div id="gameMenu" class="game-menu">
-      <h2>Womit möchtest du spielen?</h2>
+      <!-- Eigenes Spielzeug: nur sichtbar, solange dieses Menü offen ist -->
+      <div id="toyMenuSection" class="toy-menu-section hidden">
+        <h2>🧸 Mit eigenem Spielzeug spielen</h2>
+        <div class="toy-tray" id="toyMenuList"></div>
+      </div>
+      <h2>Oder ein Minispiel?</h2>
       <div class="game-cards">
         <button class="game-card" data-game="car">
           <div class="game-card-emoji">🚗</div>
