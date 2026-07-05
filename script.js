@@ -1358,7 +1358,6 @@ function buyVacationTicket() {
 
 function startVacationFlight(direction) {
   isFlightInProgress = true;
-  document.getElementById("stage").classList.add("flight-active");
   flightMessage.textContent =
     direction === "outbound"
       ? "Summi🥰🥰🧸 fliegt in Urlaub! Bitte warten…"
@@ -1376,7 +1375,6 @@ function startVacationFlight(direction) {
     if (elapsed >= FLIGHT_DURATION_MS) {
       clearInterval(flightInterval);
       flightScene.classList.add("hidden");
-      document.getElementById("stage").classList.remove("flight-active");
       isFlightInProgress = false;
       if (direction === "outbound") {
         enterVacationMode();
