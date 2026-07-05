@@ -1773,6 +1773,22 @@ h1, h2, h3, .bear-name, .action-label, .game-card-title, button{
   overflow-y: auto;
 }
 
+/* Gesammelte Karten lassen sich antippen, um sie vergrößert anzusehen */
+.card-tile[data-card-id]{ cursor: pointer; transition: transform 0.12s ease; }
+.card-tile[data-card-id]:active{ transform: scale(0.95); }
+
+/* Vergrößerte Einzelansicht einer Karte */
+.card-detail-panel{ text-align: center; }
+.card-detail-big{
+  width: min(62vw, 260px);
+  margin: 8px auto 0;
+}
+.card-detail-big .card-tile-big{ box-shadow: 0 14px 30px rgba(80,50,40,0.4), var(--shadow); }
+.card-detail-big .card-tile-big .card-name{ font-size: 1rem; padding: 8px 4px; }
+.card-detail-big .card-tile-big .card-rarity-badge{ font-size: 0.75rem; padding: 4px 10px; top: 10px; right: 10px; }
+.card-detail-big .card-tile-big .card-count{ font-size: 0.8rem; padding: 3px 9px; bottom: 30px; right: 10px; }
+.card-detail-big .card-tile-big .card-sparkle{ font-size: 1.3rem; }
+
 .booster-reveal-grid{
   display: grid;
   grid-template-columns: repeat(3, 1fr);
