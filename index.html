@@ -70,129 +70,210 @@
     <svg class="beach-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
         <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#FFE9C7"/>
-          <stop offset="55%" stop-color="#FFD9B0"/>
-          <stop offset="100%" stop-color="#FFC9A0"/>
+          <stop offset="0%" stop-color="#FDEBC4"/>
+          <stop offset="100%" stop-color="#FCE0AC"/>
         </linearGradient>
         <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#7FDCE0"/>
-          <stop offset="100%" stop-color="#2FA6B0"/>
+          <stop offset="0%" stop-color="#6FE0D6"/>
+          <stop offset="100%" stop-color="#1F9C93"/>
         </linearGradient>
-        <linearGradient id="cliffFar" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#7FAE6B"/>
-          <stop offset="100%" stop-color="#5C9457"/>
+        <linearGradient id="sandGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FCE3AE"/>
+          <stop offset="100%" stop-color="#EFC888"/>
         </linearGradient>
-        <linearGradient id="cliffNear" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#4C8A55"/>
-          <stop offset="100%" stop-color="#356B43"/>
-        </linearGradient>
+        <g id="palmTree">
+          <path d="M 2 0 Q -6 -34 2 -60" stroke="#1E4C39" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M 2 -60 Q -32 -74 -50 -54 Q -22 -60 2 -60 Z" fill="#1E4C39"/>
+          <path d="M 2 -60 Q -36 -88 -54 -87 Q -24 -78 2 -60 Z" fill="#1E4C39"/>
+          <path d="M 2 -60 Q 6 -98 -10 -108 Q 2 -82 2 -60 Z" fill="#1E4C39"/>
+          <path d="M 2 -60 Q 40 -84 56 -82 Q 26 -72 2 -60 Z" fill="#1E4C39"/>
+          <path d="M 2 -60 Q 46 -60 60 -42 Q 28 -58 2 -60 Z" fill="#1E4C39"/>
+        </g>
       </defs>
 
       <rect x="0" y="0" width="400" height="800" fill="url(#skyGrad)"/>
 
       <!-- Wolken -->
-      <g fill="#FFF6E8" opacity="0.85">
-        <ellipse cx="70" cy="70" rx="38" ry="16"/>
-        <ellipse cx="100" cy="62" rx="26" ry="13"/>
-        <ellipse cx="320" cy="46" rx="34" ry="14"/>
-        <ellipse cx="350" cy="54" rx="22" ry="11"/>
+      <g fill="#FFF8EA" opacity="0.9">
+        <ellipse cx="55" cy="95" rx="32" ry="13"/>
+        <ellipse cx="82" cy="88" rx="22" ry="11"/>
+        <ellipse cx="325" cy="150" rx="28" ry="12"/>
+        <ellipse cx="350" cy="158" rx="19" ry="9"/>
       </g>
 
-      <!-- Ferne Dschungel-Klippen (helleres Grün) -->
-      <path d="M -10 150 Q 40 70 80 120 Q 120 40 170 110 Q 210 50 250 120 Q 300 60 340 130 Q 380 90 410 140 L 410 240 L -10 240 Z" fill="url(#cliffFar)"/>
+      <!-- Ferne Klippen (helleres Grün), mit Lücke für den Tempel -->
+      <path d="M -10 400 Q 8 262 30 258 Q 50 254 70 312 Q 92 262 120 242 Q 145 265 170 302 Q 200 268 230 258 Q 260 282 292 322 Q 320 262 360 252 Q 386 270 410 302 L 410 400 Z" fill="#82B473"/>
 
-      <!-- Goldener Tempel in der Ferne -->
-      <g transform="translate(275,75)">
-        <path d="M 0 60 L 0 30 L -14 30 L 0 8 L 14 30 L 0 30" fill="#E8B84B" stroke="#C9932F" stroke-width="1.5"/>
-        <rect x="-16" y="30" width="32" height="30" fill="#F4C96B"/>
-        <rect x="-22" y="58" width="44" height="8" rx="2" fill="#C9932F"/>
-        <circle cx="0" cy="4" r="3" fill="#FFE9A8"/>
+      <!-- Tempel in der Lücke zwischen den fernen Klippen -->
+      <g transform="translate(292,322)">
+        <rect x="-24" y="-34" width="48" height="34" fill="#F4E9D7"/>
+        <rect x="-19" y="-34" width="5" height="34" fill="#E4CDA4"/>
+        <rect x="14" y="-34" width="5" height="34" fill="#E4CDA4"/>
+        <rect x="-7" y="-24" width="14" height="24" fill="#7A4B27"/>
+        <path d="M -32 -34 L 0 -50 L 32 -34 Z" fill="#D9552E"/>
+        <path d="M -32 -34 L 0 -50 L 32 -34 L 26 -31 L 0 -45 L -26 -31 Z" fill="#F2B33C"/>
+        <path d="M -20 -48 L 0 -62 L 20 -48 Z" fill="#E2793C"/>
+        <path d="M -20 -48 L 0 -62 L 20 -48 L 15 -45 L 0 -57 L -15 -45 Z" fill="#F5C463"/>
+        <path d="M -5 -60 L 0 -88 L 5 -60 Z" fill="#F2C879"/>
+        <circle cx="0" cy="-90" r="3" fill="#FBE2A0"/>
       </g>
 
       <!-- Nahe Dschungel-Klippen (dunkleres Grün, überlappt) -->
-      <path d="M -10 200 Q 30 120 70 180 Q 100 110 140 175 Q 190 100 230 180 Q 270 120 320 190 Q 360 140 410 200 L 410 290 L -10 290 Z" fill="url(#cliffNear)"/>
-      <!-- Jungle-Textur (kleine Kronen-Kleckse) -->
-      <g fill="#3E7A48" opacity="0.6">
-        <circle cx="40" cy="165" r="10"/>
-        <circle cx="90" cy="155" r="12"/>
-        <circle cx="160" cy="150" r="11"/>
-        <circle cx="250" cy="155" r="13"/>
-        <circle cx="330" cy="165" r="10"/>
+      <path d="M -10 460 Q 20 322 55 375 Q 85 308 120 368 Q 155 300 190 372 Q 225 312 260 378 Q 295 318 330 373 Q 360 328 392 370 Q 402 350 410 362 L 410 460 Z" fill="#2C6950"/>
+
+      <!-- Jungle-Textur -->
+      <g fill="#255C46" opacity="0.75">
+        <circle cx="45" cy="350" r="13"/>
+        <circle cx="108" cy="338" r="15"/>
+        <circle cx="218" cy="335" r="14"/>
+        <circle cx="345" cy="345" r="13"/>
       </g>
+
+      <!-- Einzelne Palmen an der Baumgrenze -->
+      <use href="#palmTree" transform="translate(38,372) scale(0.85)"/>
+      <use href="#palmTree" transform="translate(112,365) scale(-0.65,0.65)"/>
+      <use href="#palmTree" transform="translate(360,368) scale(-0.9,0.9)"/>
+      <use href="#palmTree" transform="translate(285,358) scale(0.6)"/>
 
       <!-- Meer -->
-      <rect x="0" y="260" width="400" height="180" fill="url(#seaGrad)"/>
-      <path d="M 0 260 Q 100 272 200 260 Q 300 248 400 260 L 400 280 Q 300 268 200 280 Q 100 292 0 280 Z" fill="#BFF2F2" opacity="0.5"/>
+      <rect x="0" y="430" width="400" height="90" fill="url(#seaGrad)"/>
+      <path d="M 0 440 Q 100 452 200 440 Q 300 428 400 440 L 400 454 Q 300 442 200 454 Q 100 466 0 454 Z" fill="#BFF2ED" opacity="0.55"/>
 
       <!-- Boot -->
-      <g transform="translate(300,320)">
-        <path d="M -22 6 Q 0 16 22 6 L 18 14 L -18 14 Z" fill="#4A3730"/>
-        <line x1="0" y1="6" x2="0" y2="-22" stroke="#4A3730" stroke-width="2"/>
-        <path d="M 0 -22 L 16 -4 L 0 -4 Z" fill="#F4A6A6" opacity="0.85"/>
-      </g>
-
-      <!-- Korallen / Wasserpflanzen -->
-      <g fill="#2E8B8F">
-        <path d="M 10 430 Q 4 410 14 398 Q 18 412 22 398 Q 28 414 34 400 Q 36 418 46 430 Z"/>
-      </g>
-      <g fill="#E2564F" opacity="0.85">
-        <circle cx="370" cy="425" r="7"/>
-        <circle cx="382" cy="416" r="6"/>
-        <circle cx="360" cy="416" r="6"/>
+      <g transform="translate(312,448)">
+        <path d="M -24 6 Q 0 15 24 6 L 19 13 L -19 13 Z" fill="#123A42"/>
+        <path d="M 18 8 Q 32 2 33 -14" stroke="#123A42" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <line x1="-4" y1="6" x2="-4" y2="-16" stroke="#123A42" stroke-width="2"/>
       </g>
 
       <!-- Sandstrand -->
-      <path d="M 0 425 Q 100 405 200 422 Q 300 440 400 420 L 400 800 L 0 800 Z" fill="#F6DFB4"/>
-      <path d="M 0 440 Q 100 424 200 438 Q 300 452 400 436 L 400 460 Q 300 476 200 462 Q 100 448 0 464 Z" fill="#F0D2A0" opacity="0.7"/>
+      <path d="M 0 480 Q 100 462 200 478 Q 300 494 400 476 L 400 800 L 0 800 Z" fill="url(#sandGrad)"/>
+      <path d="M 0 495 Q 100 480 200 493 Q 300 506 400 490 L 400 512 Q 300 528 200 514 Q 100 500 0 516 Z" fill="#EFC98A" opacity="0.6"/>
+
+      <!-- Korallen (auf dem Sand, an der Wasserlinie) -->
+      <g fill="#1F5C63">
+        <path d="M 6 500 Q 0 478 12 466 Q 14 482 18 466 Q 24 484 30 468 Q 33 486 44 500 Z"/>
+        <path d="M 362 500 Q 368 476 358 464 Q 354 482 350 464 Q 344 484 338 466 Q 335 486 322 500 Z"/>
+      </g>
+      <g fill="#E8836B" opacity="0.95">
+        <circle cx="18" cy="493" r="6.5"/>
+        <circle cx="29" cy="485" r="5.5"/>
+        <circle cx="372" cy="491" r="6.5"/>
+        <circle cx="382" cy="483" r="5.5"/>
+      </g>
+
+      <!-- Hibiskusblüte -->
+      <g transform="translate(322,600)">
+        <g fill="#F2955C">
+          <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" transform="rotate(-72)"/>
+          <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" transform="rotate(-36)"/>
+          <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" transform="rotate(0)"/>
+          <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" transform="rotate(36)"/>
+          <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" transform="rotate(72)"/>
+        </g>
+        <circle cx="0" cy="0" r="3" fill="#E8534A"/>
+        <path d="M 8 4 Q 20 2 22 -6 Q 12 -2 8 4 Z" fill="#3E7A48"/>
+      </g>
     </svg>
-    <div class="beach-palm beach-palm-left">🌴</div>
-    <div class="beach-palm beach-palm-right">🌴</div>
     <div class="vacation-badge hidden" id="vacationBadge">🏖️ Urlaub: noch <span id="vacationRemaining">20</span> Min.</div>
   </div>
 
   <!-- Flug-Ladebildschirm: Hin- und Rückflug nach Thailand.
        Ebenfalls Vollbild (unter der Kopfleiste), nicht nur ein Kasten. -->
   <div class="flight-scene hidden" id="flightScene">
-    <div class="flight-clouds">
-      <span>☁️</span><span>☁️</span><span>☁️</span>
-    </div>
-    <div class="beach-palm beach-palm-left flight-palm">🌴</div>
-    <div class="beach-palm beach-palm-right flight-palm">🌴</div>
+    <svg class="flight-bg-svg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="flightSkyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#F6D9AA"/>
+          <stop offset="55%" stop-color="#EFC7B0"/>
+          <stop offset="100%" stop-color="#C7A8CE"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="400" height="700" fill="url(#flightSkyGrad)"/>
+      <g fill="#FFF8EE" opacity="0.9">
+        <ellipse cx="60" cy="90" rx="34" ry="14"/>
+        <ellipse cx="88" cy="82" rx="22" ry="11"/>
+        <ellipse cx="330" cy="150" rx="30" ry="13"/>
+        <ellipse cx="356" cy="158" rx="20" ry="10"/>
+      </g>
+      <!-- Hügel-Silhouette am Horizont -->
+      <path d="M -10 560 Q 60 500 140 545 Q 220 585 300 540 Q 360 510 410 555 L 410 700 L -10 700 Z" fill="#B9A2C7"/>
+      <!-- Palmen-Silhouetten -->
+      <g fill="#B9A2C7">
+        <path d="M 40 560 Q 34 526 42 500" stroke="#B9A2C7" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M 42 500 Q 12 486 -2 504 Q 24 498 42 500 Z"/>
+        <path d="M 42 500 Q 8 476 -6 478 Q 20 486 42 500 Z"/>
+        <path d="M 42 500 Q 46 470 32 460 Q 42 484 42 500 Z"/>
+        <path d="M 42 500 Q 76 480 90 484 Q 62 492 42 500 Z"/>
+        <path d="M 42 500 Q 82 502 94 518 Q 64 504 42 500 Z"/>
+      </g>
+      <g fill="#B9A2C7">
+        <path d="M 92 545 Q 88 522 94 505" stroke="#B9A2C7" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 94 505 Q 74 496 65 508 Q 82 504 94 505 Z"/>
+        <path d="M 94 505 Q 72 486 62 488 Q 80 494 94 505 Z"/>
+        <path d="M 94 505 Q 116 490 126 494 Q 106 500 94 505 Z"/>
+      </g>
+      <g fill="#B9A2C7">
+        <path d="M 330 545 Q 324 508 334 480" stroke="#B9A2C7" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M 334 480 Q 300 464 284 484 Q 314 476 334 480 Z"/>
+        <path d="M 334 480 Q 296 452 280 454 Q 308 464 334 480 Z"/>
+        <path d="M 334 480 Q 340 440 324 428 Q 336 458 334 480 Z"/>
+        <path d="M 334 480 Q 372 460 388 462 Q 358 472 334 480 Z"/>
+        <path d="M 334 480 Q 376 484 390 502 Q 358 486 334 480 Z"/>
+      </g>
+      <g fill="#B9A2C7">
+        <path d="M 372 540 Q 368 518 374 502" stroke="#B9A2C7" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 374 502 Q 356 494 348 504 Q 364 500 374 502 Z"/>
+        <path d="M 374 502 Q 354 486 344 488 Q 360 494 374 502 Z"/>
+        <path d="M 374 502 Q 394 490 402 494 Q 384 498 374 502 Z"/>
+      </g>
+    </svg>
 
     <div class="plane" id="planeGraphic">
-      <svg viewBox="0 0 320 170" class="plane-svg" aria-hidden="true">
+      <svg viewBox="0 0 410 170" class="plane-svg" aria-hidden="true">
         <!-- Kondensstreifen -->
-        <path d="M 0 132 Q 40 128 78 122" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.55"/>
-        <path d="M 0 148 Q 40 143 74 136" stroke="#FFFFFF" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <path d="M 0 128 Q 42 124 80 120" stroke="#E7D9E4" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <path d="M 0 144 Q 40 140 76 134" stroke="#E7D9E4" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/>
 
-        <!-- Heckflügel (hinten unten) -->
-        <path d="M 108 118 L 60 150 L 100 138 L 132 116 Z" fill="#C9A9C4"/>
-        <!-- Seitenleitwerk (Tail) -->
-        <path d="M 118 108 Q 96 76 82 58 Q 104 70 126 100 Z" fill="#B98FB4"/>
-        <circle cx="103" cy="82" r="10" fill="#FFFDF9"/>
-        <path d="M 98 79 Q 103 74 108 79 Q 103 84 98 79 Z" fill="#F26D9B"/>
-        <path d="M 96 84 Q 103 88 110 84" stroke="#8A7268" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- Heckflügel (hinten unten, zweifarbig) -->
+        <path d="M 106 116 L 58 152 L 100 140 L 132 114 Z" fill="#9E8BA8"/>
+        <path d="M 106 116 L 132 114 L 128 122 L 100 140 Z" fill="#DDBFA0"/>
+        <!-- Triebwerk am Heckflügel -->
+        <ellipse cx="86" cy="140" rx="10" ry="7" fill="#4A3F4C"/>
 
-        <!-- Rumpf -->
-        <path d="M 90 112 Q 90 90 130 86 L 260 78 Q 296 76 308 92 Q 296 104 260 104 L 130 110 Q 100 114 90 112 Z" fill="#FFFDF9" stroke="#EADFD2" stroke-width="1.5"/>
+        <!-- Seitenleitwerk (Tail) mit Wolke-Herz-Logo -->
+        <path d="M 116 106 Q 94 74 80 56 Q 104 68 128 100 Z" fill="#9E8BA8"/>
+        <circle cx="100" cy="80" r="11" fill="#FFFDF9"/>
+        <path d="M 94 82 Q 90 74 97 71 Q 100 66 105 71 Q 111 72 109 80 Q 109 85 100 85 Q 92 86 94 82 Z" fill="#EFE6EC"/>
+        <path d="M 96 78 Q 100 74 104 78 Q 100 82 96 78 Z" fill="#F0839F"/>
+
+        <!-- Rumpf: cremefarben mit warmer Unterseite, verlängerte Nase für Text+Bullauge -->
+        <path d="M 88 112 Q 88 88 130 84 L 310 72 Q 366 70 384 92 Q 366 108 310 104 L 130 112 Q 98 116 88 112 Z" fill="#FCF7EC"/>
+        <path d="M 88 112 Q 98 116 130 112 L 310 104 Q 338 103 355 98 L 355 104 Q 338 109 310 110 L 130 118 Q 98 122 90 116 Z" fill="#E9CBA6"/>
         <!-- Nase -->
-        <path d="M 296 80 Q 312 84 308 92 Q 312 100 296 103 Z" fill="#6B5850"/>
+        <path d="M 372 74 Q 392 80 385 92 Q 392 100 372 106 Z" fill="#4A3B34"/>
 
-        <!-- Tragfläche (vorne, nach hinten geschwungen) -->
-        <path d="M 190 100 L 130 150 L 178 140 L 222 100 Z" fill="#D9A9C7"/>
-        <path d="M 232 98 L 250 128 L 230 122 L 214 98 Z" fill="#8A6B7E"/>
+        <!-- Tragfläche vorne (zweifarbig, nach hinten geschwungen) -->
+        <path d="M 188 98 L 128 148 L 176 138 L 220 98 Z" fill="#9E8BA8"/>
+        <path d="M 220 98 L 176 138 L 196 132 L 232 100 Z" fill="#DDBFA0"/>
+        <ellipse cx="150" cy="140" rx="11" ry="8" fill="#4A3F4C"/>
 
-        <!-- Bullauge mit Bärchen -->
-        <circle cx="250" cy="90" r="13" fill="#BFE9EC"/>
-        <circle cx="250" cy="90" r="13" fill="none" stroke="#EADFD2" stroke-width="2"/>
-        <text x="250" y="95" font-size="15" text-anchor="middle">🧸</text>
+        <!-- Bullauge mit Bärchen-Gesicht -->
+        <circle cx="335" cy="86" r="15" fill="#BFE0E8"/>
+        <circle cx="335" cy="86" r="15" fill="none" stroke="#FCF7EC" stroke-width="2.5"/>
+        <circle cx="329" cy="78" r="5.5" fill="#C4926E"/>
+        <circle cx="340" cy="78" r="5.5" fill="#C4926E"/>
+        <circle cx="335" cy="89" r="10" fill="#D6A480"/>
+        <path d="M 330 91 Q 335 96 340 91" stroke="#4A3730" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M 329.5 85 Q 331.5 83 333.5 85" stroke="#4A3730" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M 336.5 85 Q 338.5 83 340.5 85" stroke="#4A3730" stroke-width="1.2" fill="none" stroke-linecap="round"/>
 
-        <!-- Deko-Icons am Rumpf -->
-        <text x="150" y="102" font-size="13" text-anchor="middle">🍓</text>
-        <text x="170" y="100" font-size="13" text-anchor="middle">☕</text>
-        <text x="192" y="98" font-size="13" text-anchor="middle">💼</text>
+        <!-- Deko-Icons + Schriftzug am Rumpf -->
+        <text x="140" y="104" font-size="15" text-anchor="middle">🍓</text>
+        <text x="163" y="101" font-size="15" text-anchor="middle">☕</text>
+        <text x="186" y="98" font-size="15" text-anchor="middle">💼</text>
+        <text x="205" y="94" font-size="16" font-family="'Baloo 2', sans-serif" font-weight="800" fill="#E8637F" text-anchor="start">Urlaubsflug…</text>
       </svg>
-      <div class="plane-title">Urlaubsflug…</div>
     </div>
 
     <div class="flight-message" id="flightMessage">Summi🥰🥰🧸 fliegt in Urlaub! Bitte warten…</div>
@@ -261,6 +342,12 @@
       </div>
 
       <svg id="bearSvg" viewBox="0 0 300 320" class="bear-svg" role="img" aria-label="Teddybär">
+        <defs>
+          <linearGradient id="dressGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#F0A0B8"/>
+            <stop offset="100%" stop-color="#D9527A"/>
+          </linearGradient>
+        </defs>
         <!-- Ohren -->
         <circle cx="95" cy="70" r="34" fill="#C4926E"/>
         <circle cx="205" cy="70" r="34" fill="#C4926E"/>
@@ -395,47 +482,60 @@
         <!-- Urlaubs-Outfit Thailand: gemustertes Blumenkleid + Perlenkette
              (Asset: vacation_thailand_outfit) – nur sichtbar während state.isOnVacation -->
         <g id="vacationOutfitOverlay">
-          <!-- Kleid-Grundform -->
-          <rect x="86" y="176" width="128" height="104" rx="34" fill="#E8879A"/>
+          <!-- Kleid-Grundform (Rosé-Magenta-Verlauf) -->
+          <rect x="86" y="176" width="128" height="104" rx="34" fill="url(#dressGrad)"/>
           <!-- Ärmel -->
-          <path d="M 66 195 Q 60 220 76 240 Q 90 232 88 210 Q 88 198 82 190 Z" fill="#F26D9B"/>
-          <path d="M 234 195 Q 240 220 224 240 Q 210 232 212 210 Q 212 198 218 190 Z" fill="#F26D9B"/>
+          <path d="M 66 195 Q 60 220 76 240 Q 90 232 88 210 Q 88 198 82 190 Z" fill="#EE87A0"/>
+          <path d="M 234 195 Q 240 220 224 240 Q 210 232 212 210 Q 212 198 218 190 Z" fill="#EE87A0"/>
           <!-- Rüschen-Schichten am Rock -->
-          <path d="M 92 208 Q 150 226 208 208 L 208 222 Q 150 240 92 222 Z" fill="#F7B8C6"/>
-          <path d="M 90 236 Q 150 256 210 236 L 210 250 Q 150 268 90 250 Z" fill="#F4A0B3"/>
-          <path d="M 88 262 Q 150 282 212 262 L 212 276 Q 150 294 88 276 Z" fill="#EE87A0"/>
-          <!-- Goldene Blütenranken -->
-          <g fill="#F2C879">
-            <circle cx="112" cy="196" r="5"/>
-            <circle cx="150" cy="190" r="5"/>
-            <circle cx="188" cy="196" r="5"/>
-            <circle cx="128" cy="228" r="4.5"/>
-            <circle cx="172" cy="228" r="4.5"/>
-            <circle cx="112" cy="256" r="4.5"/>
-            <circle cx="188" cy="256" r="4.5"/>
+          <path d="M 92 208 Q 150 226 208 208 L 208 222 Q 150 240 92 222 Z" fill="#F7C3D1"/>
+          <path d="M 90 236 Q 150 256 210 236 L 210 250 Q 150 268 90 250 Z" fill="#F2A0B8"/>
+          <path d="M 88 262 Q 150 282 212 262 L 212 276 Q 150 294 88 276 Z" fill="#D9527A"/>
+          <!-- Goldene Blüten-Ranken (kleine 5-Blütenblatt-Blumen statt Punkten) -->
+          <g>
+            <g transform="translate(112,196) scale(0.55)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.6" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(150,190) scale(0.6)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.6" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(188,196) scale(0.55)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.6" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(128,228) scale(0.48)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.3" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(172,228) scale(0.48)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.3" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(112,256) scale(0.48)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.3" fill="#F26D9B"/>
+            </g>
+            <g transform="translate(188,256) scale(0.48)">
+              <g fill="#F2C879"><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cx="0" cy="-6" rx="4" ry="6" transform="rotate(288)"/></g>
+              <circle r="2.3" fill="#F26D9B"/>
+            </g>
           </g>
-          <g fill="#F26D9B">
-            <circle cx="112" cy="196" r="2.6"/>
-            <circle cx="150" cy="190" r="2.6"/>
-            <circle cx="188" cy="196" r="2.6"/>
-            <circle cx="128" cy="228" r="2.3"/>
-            <circle cx="172" cy="228" r="2.3"/>
-            <circle cx="112" cy="256" r="2.3"/>
-            <circle cx="188" cy="256" r="2.3"/>
-          </g>
-          <g fill="#FFFFFF" opacity="0.8">
+          <g fill="#FFFFFF" opacity="0.7">
             <path d="M 96 214 Q 150 200 204 214" stroke="#FFFFFF" stroke-width="1.6" fill="none"/>
             <path d="M 94 242 Q 150 228 206 242" stroke="#FFFFFF" stroke-width="1.6" fill="none"/>
           </g>
-          <!-- Perlenkette -->
+          <!-- Perlenkette mit Muschel-Anhänger -->
           <path d="M 126 186 Q 150 200 174 186" fill="none" stroke="#5C4A42" stroke-width="1" opacity="0.15"/>
           <g fill="#FFFDF9" stroke="#EADFD2" stroke-width="0.8">
-            <circle cx="126" cy="186" r="3.6"/>
-            <circle cx="136" cy="194" r="3.6"/>
-            <circle cx="150" cy="197" r="3.8"/>
-            <circle cx="164" cy="194" r="3.6"/>
-            <circle cx="174" cy="186" r="3.6"/>
+            <circle cx="126" cy="186" r="3.4"/>
+            <circle cx="136" cy="193" r="3.4"/>
+            <circle cx="164" cy="193" r="3.4"/>
+            <circle cx="174" cy="186" r="3.4"/>
           </g>
+          <path d="M 150 195 Q 144 202 150 210 Q 156 202 150 195 Z" fill="#FFFDF9" stroke="#EADFD2" stroke-width="0.8"/>
+          <path d="M 150 198 L 150 207" stroke="#EADFD2" stroke-width="0.8"/>
         </g>
         <g id="vacationHeadband" class="accessory hidden-acc">
           <path d="M 96 82 Q 106 60 150 58 Q 194 60 204 82" fill="none" stroke="#FFFDF9" stroke-width="9" stroke-linecap="round"/>
