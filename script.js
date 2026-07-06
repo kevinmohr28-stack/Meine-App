@@ -800,6 +800,27 @@ function startWork() {
   }, 100);
 }
 
+const WORK_SICK_CHANCE = 0.25; // Harte Arbeit macht logischerweise anfälliger für Krankheit
+const PLAY_TEAR_CHANCE = 0.2; // Wildes Spielen kann logischerweise eine Naht aufreißen lassen
+
+function maybeGetSickFromWork() {
+  if (state.isDead || state.isTorn || state.isSick) return;
+  if (Date.now() < state.effects.sickImmuneUntil) return;
+  if (Math.random() < WORK_SICK_CHANCE) {
+    state.isSick = true;
+    showToast("🤒 Die harte Arbeit steckt Summi in den Knochen – er ist jetzt krank...");
+    document.getElementById("sickPrompt").classList.remove("hidden");
+  }
+}
+
+function maybeTearFromPlay() {
+  if (state.isDead || state.isTorn || state.isSick) return;
+  if (Math.random() < PLAY_TEAR_CHANCE) {
+    state.isTorn = true;
+    showToast("😢 Vom wilden Spielen ist eine Naht aufgerissen!");
+  }
+}
+
 function finishWork() {
   clearInterval(workInterval);
   isWorking = false;
@@ -812,6 +833,7 @@ function finishWork() {
   state.fun = clamp(state.fun - 5);
   showToast("💼 Feierabend! +" + earned + " Coins verdient! Er hat jetzt Hunger und ist müde.");
   vibrate(20);
+  maybeGetSickFromWork();
   registerInteraction(true);
   renderAll();
   saveState();
@@ -819,10 +841,10 @@ function finishWork() {
 }
 
 let afflictionTimeout = null;
-const AFFLICTION_CHECK_MIN_MS = 5 * 60 * 1000;
-const AFFLICTION_CHECK_MAX_MS = 15 * 60 * 1000;
-const TEAR_CHANCE = 0.12;
-const SICK_CHANCE = 0.08;
+const AFFLICTION_CHECK_MIN_MS = 4 * 60 * 1000;
+const AFFLICTION_CHECK_MAX_MS = 10 * 60 * 1000;
+const TEAR_CHANCE = 0.22;
+const SICK_CHANCE = 0.16;
 
 function scheduleAfflictionCheck() {
   clearTimeout(afflictionTimeout);
@@ -1543,6 +1565,7 @@ function finishToyPlay() {
     showToast(toy.emoji + " Summi hatte riesigen Spaß mit " + toy.name + "! (+" + funGain + " 🎈)");
   }
   vibrate(30);
+  maybeTearFromPlay();
   registerInteraction(true);
   renderAll();
   saveState();
@@ -2397,6 +2420,7 @@ function showResult(scoreText, funGain, strawberryGain = 0) {
   state.coins += bonusCoins;
 
   vibrate(25);
+  maybeTearFromPlay();
   registerInteraction(true);
   renderAll();
   saveState();
