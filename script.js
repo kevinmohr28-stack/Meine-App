@@ -358,6 +358,7 @@ function renderActionLock() {
   if (el.sleepBtnLabel) {
     el.sleepBtnLabel.textContent = isSleeping ? "Aufwecken" : "Ins Bett";
   }
+  clearIdlePoseIfBusy();
 }
 
 function showDeathOverlay() {
@@ -609,6 +610,48 @@ function wiggleBear() {
   el.bearWrap.classList.remove("tapped");
   void el.bearWrap.offsetWidth;
   el.bearWrap.classList.add("tapped");
+}
+
+// =====================================================================
+// Gelegentliche Idle-Posen (Winken / Hinsetzen / Hände) – rein optisch,
+// greifen nicht in state ein. Werden entfernt, sobald Summi etwas
+// Bestimmtes tut (siehe clearIdlePoseIfBusy, aufgerufen in renderActionLock).
+// =====================================================================
+const IDLE_POSES = ["pose-wave", "pose-sit", "pose-hands"];
+let idlePoseTimeout = null;
+let idlePoseClearTimeout = null;
+
+function clearIdlePoseIfBusy() {
+  const busy =
+    state.isDead || isSleeping || isWorking || isWatchingTV || !!toyPlayState ||
+    forcedCrying || state.isSick || state.isTorn || isFlightInProgress || state.isOnVacation;
+  if (busy) {
+    clearTimeout(idlePoseClearTimeout);
+    IDLE_POSES.forEach((p) => el.bearWrap.classList.remove(p));
+  }
+}
+
+function scheduleIdlePose() {
+  clearTimeout(idlePoseTimeout);
+  const delay = 18000 + Math.random() * 22000;
+  idlePoseTimeout = setTimeout(maybeShowIdlePose, delay);
+}
+
+function maybeShowIdlePose() {
+  const blocked =
+    state.isDead || isSleeping || isWorking || isWatchingTV || !!toyPlayState ||
+    forcedCrying || state.isSick || state.isTorn || isFlightInProgress || state.isOnVacation ||
+    !overlay.classList.contains("hidden") || !shopOverlay.classList.contains("hidden") ||
+    !questOverlay.classList.contains("hidden") || !document.getElementById("infoOverlay").classList.contains("hidden");
+  if (!blocked) {
+    const pose = IDLE_POSES[Math.floor(Math.random() * IDLE_POSES.length)];
+    el.bearWrap.classList.add(pose);
+    clearTimeout(idlePoseClearTimeout);
+    idlePoseClearTimeout = setTimeout(() => {
+      el.bearWrap.classList.remove(pose);
+    }, 3500 + Math.random() * 2500);
+  }
+  scheduleIdlePose();
 }
 
 let isSleeping = false;
@@ -3358,6 +3401,7 @@ startTickLoop();
 scheduleSpeech(true);
 scheduleTV();
 scheduleAfflictionCheck();
+scheduleIdlePose();
 renderWheelSegments();
 if (state.isSick) document.getElementById("sickPrompt").classList.remove("hidden");
 checkAchievements();
